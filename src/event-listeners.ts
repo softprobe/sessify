@@ -9,7 +9,7 @@ import {
   recordKeyboardShortcut,
   recordFormCancel,
   recordScrollEvent,
-} from "./environment-recorder";
+} from './environment-recorder';
 
 // Global scroll recording state
 let isGlobalScrollRecordingEnabled = false;
@@ -21,12 +21,12 @@ type Configs = {
 };
 // 初始化所有事件监听器
 export function initializeEventListeners({ observeScroll }: Configs) {
-  if (typeof window === "undefined") {
-    console.log("⚠️ Skipping event listeners initialization on server side");
+  if (typeof window === 'undefined') {
+    console.log('⚠️ Skipping event listeners initialization on server side');
     return;
   }
 
-  console.log("🎧 Initializing event listeners...");
+  console.log('🎧 Initializing event listeners...');
 
   // 配置是否开启滚动监听
   disableGlobalScrollRecording();
@@ -35,7 +35,7 @@ export function initializeEventListeners({ observeScroll }: Configs) {
   }
 
   // 页面卸载监听
-  window.addEventListener("beforeunload", () => {
+  window.addEventListener('beforeunload', () => {
     recordPageUnload();
   });
 
@@ -57,68 +57,68 @@ export function initializeEventListeners({ observeScroll }: Configs) {
       recordScrollEvent(window.scrollX, window.scrollY, window);
     }
   };
-  window.addEventListener("scroll", globalScrollEventHandler, {
+  window.addEventListener('scroll', globalScrollEventHandler, {
     passive: true,
   });
-  console.log("📜 Global scroll event listener initialized");
+  console.log('📜 Global scroll event listener initialized');
 
   // 鼠标移动监听（节流）
-  document.addEventListener("mousemove", (event) => {
+  document.addEventListener('mousemove', (event) => {
     recordMouseMove(event.clientX, event.clientY);
   });
 
   // Hover 事件监听
   document.addEventListener(
-    "mouseenter",
+    'mouseenter',
     (event) => {
       if (event.target instanceof HTMLElement) {
-        recordHoverEvent("enter", event.target);
+        recordHoverEvent('enter', event.target);
       }
     },
     true,
   );
 
   document.addEventListener(
-    "mouseleave",
+    'mouseleave',
     (event) => {
       if (event.target instanceof HTMLElement) {
-        recordHoverEvent("leave", event.target);
+        recordHoverEvent('leave', event.target);
       }
     },
     true,
   );
 
   // 拖拽事件监听
-  document.addEventListener("dragstart", (event) => {
+  document.addEventListener('dragstart', (event) => {
     if (event.target instanceof HTMLElement) {
-      recordDragEvent("start", event.target, {
-        data_transfer: event.dataTransfer?.types.join(",") || "",
+      recordDragEvent('start', event.target, {
+        data_transfer: event.dataTransfer?.types.join(',') || '',
       });
     }
   });
 
-  document.addEventListener("drag", (event) => {
+  document.addEventListener('drag', (event) => {
     if (event.target instanceof HTMLElement) {
-      recordDragEvent("move", event.target, {
+      recordDragEvent('move', event.target, {
         client_x: event.clientX,
         client_y: event.clientY,
       });
     }
   });
 
-  document.addEventListener("dragend", (event) => {
+  document.addEventListener('dragend', (event) => {
     if (event.target instanceof HTMLElement) {
-      recordDragEvent("end", event.target);
+      recordDragEvent('end', event.target);
     }
   });
 
   // 键盘快捷键监听
-  document.addEventListener("keydown", (event) => {
+  document.addEventListener('keydown', (event) => {
     const modifiers: string[] = [];
-    if (event.ctrlKey) modifiers.push("Ctrl");
-    if (event.metaKey) modifiers.push("Cmd");
-    if (event.altKey) modifiers.push("Alt");
-    if (event.shiftKey) modifiers.push("Shift");
+    if (event.ctrlKey) modifiers.push('Ctrl');
+    if (event.metaKey) modifiers.push('Cmd');
+    if (event.altKey) modifiers.push('Alt');
+    if (event.shiftKey) modifiers.push('Shift');
 
     // 只记录有修饰键的快捷键
     if (modifiers.length > 0) {
@@ -127,9 +127,9 @@ export function initializeEventListeners({ observeScroll }: Configs) {
   });
 
   // 表单取消监听
-  document.addEventListener("reset", (event) => {
+  document.addEventListener('reset', (event) => {
     if (event.target instanceof HTMLFormElement) {
-      recordFormCancel(event.target, "reset");
+      recordFormCancel(event.target, 'reset');
     }
   });
 
@@ -137,9 +137,9 @@ export function initializeEventListeners({ observeScroll }: Configs) {
   let currentUrl = window.location.href;
 
   // 监听 popstate 事件（浏览器前进/后退）
-  window.addEventListener("popstate", () => {
+  window.addEventListener('popstate', () => {
     const newUrl = window.location.href;
-    recordRouteChange(currentUrl, newUrl, "back");
+    recordRouteChange(currentUrl, newUrl, 'back');
     currentUrl = newUrl;
   });
 
@@ -150,38 +150,38 @@ export function initializeEventListeners({ observeScroll }: Configs) {
   history.pushState = function (...args) {
     const newUrl = window.location.href;
     originalPushState.apply(this, args);
-    recordRouteChange(currentUrl, newUrl, "push");
+    recordRouteChange(currentUrl, newUrl, 'push');
     currentUrl = newUrl;
   };
 
   history.replaceState = function (...args) {
     const newUrl = window.location.href;
     originalReplaceState.apply(this, args);
-    recordRouteChange(currentUrl, newUrl, "replace");
+    recordRouteChange(currentUrl, newUrl, 'replace');
     currentUrl = newUrl;
   };
 
   // 双击和右键监听
-  document.addEventListener("dblclick", (event) => {
+  document.addEventListener('dblclick', (event) => {
     if (event.target instanceof HTMLElement) {
-      const tracer = trace.getTracer("web-interaction");
-      tracer.startActiveSpan("user.interaction.double_click", (span) => {
+      const tracer = trace.getTracer('web-interaction');
+      tracer.startActiveSpan('user.interaction.double_click', (span) => {
         try {
           const target = event.target as HTMLElement;
-          span.setAttribute("user.action", "double_click");
-          span.setAttribute("target.tag_name", target.tagName);
-          span.setAttribute("target.id", target.id || "");
-          span.setAttribute("target.class_name", target.className || "");
-          span.setAttribute("user.action.timestamp", new Date().toISOString());
-          span.setAttribute("page.url", window.location.href);
+          span.setAttribute('user.action', 'double_click');
+          span.setAttribute('target.tag_name', target.tagName);
+          span.setAttribute('target.id', target.id || '');
+          span.setAttribute('target.class_name', target.className || '');
+          span.setAttribute('user.action.timestamp', new Date().toISOString());
+          span.setAttribute('page.url', window.location.href);
 
           const rect = target.getBoundingClientRect();
-          span.setAttribute("target.position.x", rect.x);
-          span.setAttribute("target.position.y", rect.y);
+          span.setAttribute('target.position.x', rect.x);
+          span.setAttribute('target.position.y', rect.y);
 
-          console.log("🖱️ Double click recorded");
+          console.log('🖱️ Double click recorded');
         } catch (error) {
-          console.error("❌ Failed to record double click:", error);
+          console.error('❌ Failed to record double click:', error);
           span.recordException(error as Error);
         } finally {
           span.end();
@@ -190,26 +190,26 @@ export function initializeEventListeners({ observeScroll }: Configs) {
     }
   });
 
-  document.addEventListener("contextmenu", (event) => {
+  document.addEventListener('contextmenu', (event) => {
     if (event.target instanceof HTMLElement) {
-      const tracer = trace.getTracer("web-interaction");
-      tracer.startActiveSpan("user.interaction.right_click", (span) => {
+      const tracer = trace.getTracer('web-interaction');
+      tracer.startActiveSpan('user.interaction.right_click', (span) => {
         try {
           const target = event.target as HTMLElement;
-          span.setAttribute("user.action", "right_click");
-          span.setAttribute("target.tag_name", target.tagName);
-          span.setAttribute("target.id", target.id || "");
-          span.setAttribute("target.class_name", target.className || "");
-          span.setAttribute("user.action.timestamp", new Date().toISOString());
-          span.setAttribute("page.url", window.location.href);
+          span.setAttribute('user.action', 'right_click');
+          span.setAttribute('target.tag_name', target.tagName);
+          span.setAttribute('target.id', target.id || '');
+          span.setAttribute('target.class_name', target.className || '');
+          span.setAttribute('user.action.timestamp', new Date().toISOString());
+          span.setAttribute('page.url', window.location.href);
 
           const rect = target.getBoundingClientRect();
-          span.setAttribute("target.position.x", rect.x);
-          span.setAttribute("target.position.y", rect.y);
+          span.setAttribute('target.position.x', rect.x);
+          span.setAttribute('target.position.y', rect.y);
 
-          console.log("🖱️ Right click recorded");
+          console.log('🖱️ Right click recorded');
         } catch (error) {
-          console.error("❌ Failed to record right click:", error);
+          console.error('❌ Failed to record right click:', error);
           span.recordException(error as Error);
         } finally {
           span.end();
@@ -218,41 +218,39 @@ export function initializeEventListeners({ observeScroll }: Configs) {
     }
   });
 
-  console.log("✅ Event listeners initialized successfully");
+  console.log('✅ Event listeners initialized successfully');
 }
 
 // Global scroll recording control functions
 export function enableGlobalScrollRecording(): boolean {
-  if (typeof window === "undefined") {
-    console.log("⚠️ Cannot enable scroll recording on server side");
+  if (typeof window === 'undefined') {
+    console.log('⚠️ Cannot enable scroll recording on server side');
     return false;
   }
 
   if (isGlobalScrollRecordingEnabled) {
-    console.log("📜 Global scroll recording is already enabled");
+    console.log('📜 Global scroll recording is already enabled');
     return true;
   }
 
   isGlobalScrollRecordingEnabled = true;
-  console.log(
-    "📜 Global scroll recording enabled - Real scroll events will be recorded",
-  );
+  console.log('📜 Global scroll recording enabled - Real scroll events will be recorded');
   return true;
 }
 
 export function disableGlobalScrollRecording(): boolean {
-  if (typeof window === "undefined") {
-    console.log("⚠️ Cannot disable scroll recording on server side");
+  if (typeof window === 'undefined') {
+    console.log('⚠️ Cannot disable scroll recording on server side');
     return false;
   }
 
   if (!isGlobalScrollRecordingEnabled) {
-    console.log("📜 Global scroll recording is already disabled");
+    console.log('📜 Global scroll recording is already disabled');
     return false;
   }
 
   isGlobalScrollRecordingEnabled = false;
-  console.log("📜 Global scroll recording disabled");
+  console.log('📜 Global scroll recording disabled');
   return true;
 }
 
@@ -269,4 +267,4 @@ export function toggleGlobalScrollRecording(): boolean {
 }
 
 // 导入 trace 用于手动记录
-import { trace } from "@opentelemetry/api";
+import { trace } from '@opentelemetry/api';
