@@ -1,5 +1,10 @@
 import { getWebAutoInstrumentations } from '@opentelemetry/auto-instrumentations-web';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
+import {
+  CompositePropagator,
+  W3CBaggagePropagator,
+  W3CTraceContextPropagator,
+} from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import {
@@ -18,6 +23,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
 }> {
   return new Promise((resolve, reject) => {
     console.log('🚀 Starting OpenTelemetry initialization...');
+    const sessionId = getSessionId(config.serviceName);
 
     // 构造processor
     const spanProcessors: SpanProcessor[] = [];
@@ -38,7 +44,8 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
     const resource = createUserResource({
       apiKey: config.apiKey,
       userId: config.userId,
-      sessionId: getSessionId(config.serviceName),
+      serviceName: config.serviceName,
+      sessionId,
     });
 
     // 构造provider
@@ -49,7 +56,12 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
     console.log('✅ WebTracerProvider created');
 
     // 注册 provider 和 context manager
-    provider.register({ contextManager: new ZoneContextManager() });
+    provider.register({
+      contextManager: new ZoneContextManager(),
+      propagator: new CompositePropagator({
+        propagators: [new W3CBaggagePropagator(), new W3CTraceContextPropagator()],
+      }),
+    });
     console.log('✅ Provider registered with ZoneContextManager');
 
     // 注册自动检测
@@ -72,6 +84,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
             },
             // 自定义 Fetch 检测
             '@opentelemetry/instrumentation-fetch': {
+              propagateTraceHeaderCorsUrls: [/.*/],
               applyCustomAttributesOnSpan: (span: any, request: any, result: any) => {
                 try {
                   // 记录请求信息
@@ -145,6 +158,9 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
                 }
               },
             },
+            '@opentelemetry/instrumentation-xml-http-request': {
+              propagateTraceHeaderCorsUrls: [/.*/],
+            },
           }),
         ],
       });
@@ -167,7 +183,6 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
           import('./event-listeners'),
         ])
           .then(([{ recordEnvironmentInfo, recordPageLoadInfo }, { initializeEventListeners }]) => {
-            const sessionId = `session_${Date.now()}`;
             recordEnvironmentInfo(sessionId);
             recordPageLoadInfo();
             console.log('🌍 Environment and page load info recorded');
