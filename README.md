@@ -19,7 +19,10 @@ export function register() {
     apiKey: 'YOUR_API_KEY',
     userId: 'YOUR_USER_ID',
     serviceName: 'YOUR_BUSINESS_SOURCE',
-    collectorEndpoint: process.env.INSPECTOR_COLLECTOR_PROXY_URL!,
+    // 上报数据地址: <INSPECTOR_COLLECTOR_URL>/v1/traces
+    collectorEndpoint: process.env.INSPECTOR_COLLECTOR_URL!,
+    // 开发环境自动启用Console日志
+    env: 'dev',
 
     observeScroll: false,
   })
