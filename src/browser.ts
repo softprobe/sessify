@@ -78,7 +78,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
                 "submit",
                 "keypress",
                 "change",
-                // "focus",
+                "focus",
                 "blur",
               ],
             },
@@ -97,7 +97,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
 
                     // 记录请求头
                     if (request.headers) {
-                      const headers = Object.fromEntries(request.headers.entries());
+                      const headers = typeof request.headers.entries === 'function' ? Object.fromEntries(request.headers.entries()) : JSON.parse(JSON.stringify(request.headers));
                       const importantHeaders = [
                         "content-type",
                         "authorization",
