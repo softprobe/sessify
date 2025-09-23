@@ -234,9 +234,7 @@ export function enableGlobalScrollRecording(): boolean {
   }
 
   isGlobalScrollRecordingEnabled = true;
-  console.log(
-    "📜 Global scroll recording enabled - Real scroll events will be recorded",
-  );
+  console.log("📜 Global scroll recording enabled - Real scroll events will be recorded");
   return true;
 }
 

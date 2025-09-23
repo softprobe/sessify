@@ -22,10 +22,7 @@ export function recordEnvironmentInfo(sessionId?: string) {
         span.setAttribute("network.effectiveType", conn.effectiveType); // wifi/4g/…
         span.setAttribute("network.rtt", conn.rtt);
       }
-      span.setAttribute(
-        "browser.timezone",
-        Intl.DateTimeFormat().resolvedOptions().timeZone,
-      );
+      span.setAttribute("browser.timezone", Intl.DateTimeFormat().resolvedOptions().timeZone);
       span.setAttribute("browser.language", navigator.language);
 
       // 会话信息
@@ -62,23 +59,13 @@ export function recordPageLoadInfo() {
       if (window.performance && window.performance.timing) {
         const timing = window.performance.timing;
         const loadTime = timing.loadEventEnd - timing.navigationStart;
-        const domReadyTime =
-          timing.domContentLoadedEventEnd - timing.navigationStart;
+        const domReadyTime = timing.domContentLoadedEventEnd - timing.navigationStart;
 
         span.setAttribute("page.load_time", loadTime);
         span.setAttribute("page.dom_ready_time", domReadyTime);
-        span.setAttribute(
-          "page.dns_time",
-          timing.domainLookupEnd - timing.domainLookupStart,
-        );
-        span.setAttribute(
-          "page.tcp_time",
-          timing.connectEnd - timing.connectStart,
-        );
-        span.setAttribute(
-          "page.request_time",
-          timing.responseEnd - timing.requestStart,
-        );
+        span.setAttribute("page.dns_time", timing.domainLookupEnd - timing.domainLookupStart);
+        span.setAttribute("page.tcp_time", timing.connectEnd - timing.connectStart);
+        span.setAttribute("page.request_time", timing.responseEnd - timing.requestStart);
       }
 
       // 页面信息
@@ -121,10 +108,7 @@ export function recordUserInteraction(
         span.setAttribute("target.tag_name", target.tagName);
         span.setAttribute("target.id", target.id || "");
         span.setAttribute("target.class_name", target.className || "");
-        span.setAttribute(
-          "target.text_content",
-          target.textContent?.substring(0, 100) || "",
-        );
+        span.setAttribute("target.text_content", target.textContent?.substring(0, 100) || "");
 
         // 位置信息
         const rect = target.getBoundingClientRect();
@@ -209,16 +193,12 @@ export function recordNetworkRequest(
           ];
           importantHeaders.forEach((header) => {
             const value =
-              requestData.headers![header] ||
-              requestData.headers![header.toLowerCase()];
+              requestData.headers![header] || requestData.headers![header.toLowerCase()];
             if (value) {
               span.setAttribute(`request.header.${header}`, value);
             }
           });
-          span.setAttribute(
-            "request.headers_count",
-            Object.keys(requestData.headers).length,
-          );
+          span.setAttribute("request.headers_count", Object.keys(requestData.headers).length);
         }
 
         if (requestData.body) {
@@ -258,16 +238,12 @@ export function recordNetworkRequest(
           ];
           importantResponseHeaders.forEach((header) => {
             const value =
-              responseData.headers![header] ||
-              responseData.headers![header.toLowerCase()];
+              responseData.headers![header] || responseData.headers![header.toLowerCase()];
             if (value) {
               span.setAttribute(`response.header.${header}`, value);
             }
           });
-          span.setAttribute(
-            "response.headers_count",
-            Object.keys(responseData.headers).length,
-          );
+          span.setAttribute("response.headers_count", Object.keys(responseData.headers).length);
         }
 
         if (responseData.body) {
@@ -283,10 +259,7 @@ export function recordNetworkRequest(
           if (bodyStr.length <= 200) {
             span.setAttribute("response.body_preview", bodyStr);
           } else {
-            span.setAttribute(
-              "response.body_preview",
-              bodyStr.substring(0, 200) + "...",
-            );
+            span.setAttribute("response.body_preview", bodyStr.substring(0, 200) + "...");
           }
         }
 
@@ -302,12 +275,8 @@ export function recordNetworkRequest(
       console.log(`🌐 Network request recorded: ${method} ${url}`, {
         status,
         duration,
-        requestSize: requestData?.body
-          ? JSON.stringify(requestData.body).length
-          : 0,
-        responseSize: responseData?.body
-          ? JSON.stringify(responseData.body).length
-          : 0,
+        requestSize: requestData?.body ? JSON.stringify(requestData.body).length : 0,
+        responseSize: responseData?.body ? JSON.stringify(responseData.body).length : 0,
       });
     } catch (error) {
       console.error("❌ Failed to record network request:", error);
@@ -362,9 +331,7 @@ export function recordRouteChange(
       span.setAttribute("page.scroll_y", window.scrollY);
       span.setAttribute("page.scroll_x", window.scrollX);
 
-      console.log(
-        `🧭 Route change recorded: ${fromUrl} → ${toUrl} (${method})`,
-      );
+      console.log(`🧭 Route change recorded: ${fromUrl} → ${toUrl} (${method})`);
     } catch (error) {
       console.error("❌ Failed to record route change:", error);
       span.recordException(error as Error);
@@ -433,18 +400,11 @@ function processMouseMoveBuffer() {
       span.setAttribute("mouse.trajectory_points", mouseMoveBuffer.length);
       span.setAttribute("mouse.start_x", mouseMoveBuffer[0].x);
       span.setAttribute("mouse.start_y", mouseMoveBuffer[0].y);
-      span.setAttribute(
-        "mouse.end_x",
-        mouseMoveBuffer[mouseMoveBuffer.length - 1].x,
-      );
-      span.setAttribute(
-        "mouse.end_y",
-        mouseMoveBuffer[mouseMoveBuffer.length - 1].y,
-      );
+      span.setAttribute("mouse.end_x", mouseMoveBuffer[mouseMoveBuffer.length - 1].x);
+      span.setAttribute("mouse.end_y", mouseMoveBuffer[mouseMoveBuffer.length - 1].y);
       span.setAttribute(
         "mouse.duration",
-        mouseMoveBuffer[mouseMoveBuffer.length - 1].timestamp -
-          mouseMoveBuffer[0].timestamp,
+        mouseMoveBuffer[mouseMoveBuffer.length - 1].timestamp - mouseMoveBuffer[0].timestamp,
       );
       span.setAttribute("page.url", window.location.href);
 
@@ -477,10 +437,7 @@ function processMouseMoveBuffer() {
 }
 
 // 记录 hover 事件
-export function recordHoverEvent(
-  action: "enter" | "leave",
-  target: HTMLElement,
-) {
+export function recordHoverEvent(action: "enter" | "leave", target: HTMLElement) {
   // const tracer = trace.getTracer('web-hover');
   // tracer.startActiveSpan(`hover.${action}`, (span) => {
   //   try {
@@ -535,11 +492,7 @@ export function recordDragEvent(
 }
 
 // 记录键盘快捷键
-export function recordKeyboardShortcut(
-  key: string,
-  modifiers: string[],
-  target?: HTMLElement,
-) {
+export function recordKeyboardShortcut(key: string, modifiers: string[], target?: HTMLElement) {
   const tracer = trace.getTracer("web-keyboard");
   tracer.startActiveSpan("keyboard.shortcut", (span) => {
     try {
@@ -554,9 +507,7 @@ export function recordKeyboardShortcut(
         span.setAttribute("target.id", target.id || "");
       }
 
-      console.log(
-        `⌨️ Keyboard shortcut recorded: ${[...modifiers, key].join("+")}`,
-      );
+      console.log(`⌨️ Keyboard shortcut recorded: ${[...modifiers, key].join("+")}`);
     } catch (error) {
       console.error("❌ Failed to record keyboard shortcut:", error);
       span.recordException(error as Error);
@@ -573,11 +524,7 @@ let lastScrollTime = 0;
 const SCROLL_THROTTLE_MS = 100; // 每100ms最多记录一次
 const SCROLL_BATCH_SIZE = 5; // 每5个点或每500ms处理一次
 
-export function recordScrollEvent(
-  x: number,
-  y: number,
-  target?: HTMLElement | Window,
-) {
+export function recordScrollEvent(x: number, y: number, target?: HTMLElement | Window) {
   const now = Date.now();
 
   // 节流：如果距离上次记录时间太短，直接返回
@@ -613,27 +560,18 @@ function processScrollBuffer(target?: HTMLElement | Window) {
       span.setAttribute("scroll.points_count", scrollBuffer.length);
       span.setAttribute("scroll.start_x", scrollBuffer[0].x);
       span.setAttribute("scroll.start_y", scrollBuffer[0].y);
-      span.setAttribute(
-        "scroll.end_x",
-        scrollBuffer[scrollBuffer.length - 1].x,
-      );
-      span.setAttribute(
-        "scroll.end_y",
-        scrollBuffer[scrollBuffer.length - 1].y,
-      );
+      span.setAttribute("scroll.end_x", scrollBuffer[scrollBuffer.length - 1].x);
+      span.setAttribute("scroll.end_y", scrollBuffer[scrollBuffer.length - 1].y);
       span.setAttribute(
         "scroll.duration",
-        scrollBuffer[scrollBuffer.length - 1].timestamp -
-          scrollBuffer[0].timestamp,
+        scrollBuffer[scrollBuffer.length - 1].timestamp - scrollBuffer[0].timestamp,
       );
       span.setAttribute("scroll.timestamp", new Date().toISOString());
       span.setAttribute("page.url", window.location.href);
 
       // 计算滚动距离
-      const deltaX =
-        scrollBuffer[scrollBuffer.length - 1].x - scrollBuffer[0].x;
-      const deltaY =
-        scrollBuffer[scrollBuffer.length - 1].y - scrollBuffer[0].y;
+      const deltaX = scrollBuffer[scrollBuffer.length - 1].x - scrollBuffer[0].x;
+      const deltaY = scrollBuffer[scrollBuffer.length - 1].y - scrollBuffer[0].y;
       const totalDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
       span.setAttribute("scroll.delta_x", deltaX);
@@ -657,14 +595,8 @@ function processScrollBuffer(target?: HTMLElement | Window) {
       // 视口信息
       span.setAttribute("viewport.width", window.innerWidth);
       span.setAttribute("viewport.height", window.innerHeight);
-      span.setAttribute(
-        "document.scroll_width",
-        document.documentElement.scrollWidth,
-      );
-      span.setAttribute(
-        "document.scroll_height",
-        document.documentElement.scrollHeight,
-      );
+      span.setAttribute("document.scroll_width", document.documentElement.scrollWidth);
+      span.setAttribute("document.scroll_height", document.documentElement.scrollHeight);
 
       console.log(
         `📜 Scroll event recorded: ${scrollBuffer.length} points, direction: ${direction}, distance: ${totalDistance.toFixed(2)}px`,
@@ -697,9 +629,7 @@ export function recordFormCancel(form: HTMLFormElement, reason?: string) {
       span.setAttribute("form.timestamp", new Date().toISOString());
       span.setAttribute("page.url", window.location.href);
 
-      console.log(
-        `📝 Form cancel recorded: ${form.id || "unnamed"} (${reason || "unknown"})`,
-      );
+      console.log(`📝 Form cancel recorded: ${form.id || "unnamed"} (${reason || "unknown"})`);
     } catch (error) {
       console.error("❌ Failed to record form cancel:", error);
       span.recordException(error as Error);
