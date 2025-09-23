@@ -1,15 +1,17 @@
 // event-listeners.ts - 自动事件监听器
+import { trace } from "@opentelemetry/api";
 import {
-  recordPageUnload,
-  recordRouteChange,
-  recordPageZoom,
-  recordMouseMove,
-  recordHoverEvent,
   recordDragEvent,
-  recordKeyboardShortcut,
   recordFormCancel,
+  recordHoverEvent,
+  recordKeyboardShortcut,
+  recordMouseMove,
+  recordPageUnload,
+  recordPageZoom,
+  recordRouteChange,
   recordScrollEvent,
 } from "./environment-recorder";
+import { recordChangeEvent } from "./recordChange";
 
 // Global scroll recording state
 let isGlobalScrollRecordingEnabled = false;
@@ -190,6 +192,11 @@ export function initializeEventListeners({ observeScroll }: Configs) {
     }
   });
 
+  // change event
+  document.addEventListener("change", (event) => {
+    recordChangeEvent(event)
+  });
+
   document.addEventListener("contextmenu", (event) => {
     if (event.target instanceof HTMLElement) {
       const tracer = trace.getTracer("web-interaction");
@@ -266,5 +273,3 @@ export function toggleGlobalScrollRecording(): boolean {
   }
 }
 
-// 导入 trace 用于手动记录
-import { trace } from "@opentelemetry/api";
