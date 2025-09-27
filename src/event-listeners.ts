@@ -194,7 +194,7 @@ export function initializeEventListeners({ observeScroll }: Configs) {
 
   // change event
   document.addEventListener("change", (event) => {
-    recordChangeEvent(event)
+    recordChangeEvent(event);
   });
 
   document.addEventListener("contextmenu", (event) => {
@@ -272,4 +272,3 @@ export function toggleGlobalScrollRecording(): boolean {
     return enableGlobalScrollRecording();
   }
 }
-

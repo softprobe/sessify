@@ -1,22 +1,21 @@
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions";
-import { getSessionId } from "./getSessionId";
 
 type Options = {
   apiKey: string;
   userId: string;
   serviceName: string;
-  sessionId: string;
+  spSessionId: string;
 };
 // 创建用户资源信息（Mock 数据）
-export function createUserResource({ apiKey, userId, serviceName, sessionId }: Options) {
+export function createUserResource({ apiKey, userId, serviceName, spSessionId }: Options) {
   // 模拟用户信息 - 在实际应用中这些数据应该来自认证系统
   const mockUserInfo = {
     email: "harry@example.com",
     username: "john_doe",
     apiKey,
     userId,
-    sessionId,
+    spSessionId,
     userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
     language: typeof navigator !== "undefined" ? navigator.language : "en-US",
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -30,7 +29,7 @@ export function createUserResource({ apiKey, userId, serviceName, sessionId }: O
     "user.email": mockUserInfo.email,
     "user.username": mockUserInfo.username,
     "user.id": mockUserInfo.userId,
-    "user.session_id": mockUserInfo.sessionId,
+    "user.sp_session_id": mockUserInfo.spSessionId,
     [ATTR_SERVICE_NAME]: serviceName,
     [ATTR_SERVICE_VERSION]: "0.0.1",
   });

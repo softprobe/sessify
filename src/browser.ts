@@ -13,17 +13,18 @@ import {
   SpanProcessor,
 } from "@opentelemetry/sdk-trace-base";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
-import { CustomConsoleSpanExporter } from "./CustomConsoleSpanExporter";
 import { InspectorConfig } from "./config";
 import { createUserResource } from "./createUserResource";
-import { getSessionId } from "./getSessionId";
+import { CustomConsoleSpanExporter } from "./CustomConsoleSpanExporter";
+import { HttpHeaderPropagator } from "./HttpHeaderPropagator";
+import { getSessionId } from "./SessionManager";
 
 export function initBrowserInspector(config: InspectorConfig): Promise<{
   provider: WebTracerProvider;
 }> {
   return new Promise((resolve, reject) => {
     console.log("🚀 Starting OpenTelemetry initialization...");
-    const sessionId = getSessionId(config.serviceName);
+    const spSessionId = getSessionId();
 
     // 构造processor
     const spanProcessors: SpanProcessor[] = [];
@@ -45,7 +46,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
       apiKey: config.apiKey,
       userId: config.userId,
       serviceName: config.serviceName,
-      sessionId,
+      spSessionId: spSessionId,
     });
 
     // 构造provider
@@ -59,7 +60,13 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
     provider.register({
       contextManager: new ZoneContextManager(),
       propagator: new CompositePropagator({
-        propagators: [new W3CBaggagePropagator(), new W3CTraceContextPropagator()],
+        propagators: [
+          new W3CBaggagePropagator(),
+          new W3CTraceContextPropagator(),
+          new HttpHeaderPropagator({
+            "x-sp-session-id": spSessionId,
+          }),
+        ],
       }),
     });
     console.log("✅ Provider registered with ZoneContextManager");
@@ -97,7 +104,10 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
 
                     // 记录请求头
                     if (request.headers) {
-                      const headers = typeof request.headers.entries === 'function' ? Object.fromEntries(request.headers.entries()) : JSON.parse(JSON.stringify(request.headers));
+                      const headers =
+                        typeof request.headers.entries === "function"
+                          ? Object.fromEntries(request.headers.entries())
+                          : JSON.parse(JSON.stringify(request.headers));
                       const importantHeaders = [
                         "content-type",
                         "authorization",
@@ -183,7 +193,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
           import("./event-listeners"),
         ])
           .then(([{ recordEnvironmentInfo, recordPageLoadInfo }, { initializeEventListeners }]) => {
-            recordEnvironmentInfo(sessionId);
+            recordEnvironmentInfo(spSessionId);
             recordPageLoadInfo();
             console.log("🌍 Environment and page load info recorded");
 

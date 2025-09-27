@@ -3,7 +3,7 @@ import { getElementXPath } from "./getElementXPath";
 
 // 处理select标签的change事件
 const handleSelectChange = (target: HTMLSelectElement) => {
-  const spanType = 'select_change'
+  const spanType = "select_change";
   const tracer = trace.getTracer("web-interaction");
   tracer.startActiveSpan(`user.interaction.${spanType}`, (span) => {
     try {
@@ -12,9 +12,9 @@ const handleSelectChange = (target: HTMLSelectElement) => {
       span.setAttribute("target.id", target.id || "");
       span.setAttribute("target.class_name", target.className || "");
       span.setAttribute("user.action.timestamp", new Date().toISOString());
-      span.setAttribute('selected.value', target.value);
-      span.setAttribute('selected.text', target.options[target.selectedIndex].text);
-      span.setAttribute('xpath', getElementXPath(target));
+      span.setAttribute("selected.value", target.value);
+      span.setAttribute("selected.text", target.options[target.selectedIndex].text);
+      span.setAttribute("xpath", getElementXPath(target));
       console.log("🖱️ Select change recorded");
     } catch (error) {
       console.error("❌ Failed to record select change:", error);
@@ -23,11 +23,11 @@ const handleSelectChange = (target: HTMLSelectElement) => {
       span.end();
     }
   });
-}
+};
 
 // 处理input[type='date']标签的change事件
 const handleInputDateChange = (target: HTMLInputElement) => {
-  const spanType = 'input_date_change'
+  const spanType = "input_date_change";
   const tracer = trace.getTracer("web-interaction");
   tracer.startActiveSpan(`user.interaction.${spanType}`, (span) => {
     try {
@@ -37,8 +37,8 @@ const handleInputDateChange = (target: HTMLInputElement) => {
       span.setAttribute("target.type", target.type || "");
       span.setAttribute("target.class_name", target.className || "");
       span.setAttribute("user.action.timestamp", new Date().toISOString());
-      span.setAttribute('input.value', target.value);
-      span.setAttribute('xpath', getElementXPath(target));
+      span.setAttribute("input.value", target.value);
+      span.setAttribute("xpath", getElementXPath(target));
       console.log("🖱️ Input change recorded");
     } catch (error) {
       console.error("❌ Failed to record input change:", error);
@@ -47,16 +47,16 @@ const handleInputDateChange = (target: HTMLInputElement) => {
       span.end();
     }
   });
-}
+};
 
 export const recordChangeEvent = (event: Event) => {
   if (event.target instanceof HTMLSelectElement) {
-    handleSelectChange(event.target)
+    handleSelectChange(event.target);
     return;
   }
-  if (event.target instanceof HTMLInputElement && event.target.type === 'date') {
-    handleInputDateChange(event.target)
-    return
+  if (event.target instanceof HTMLInputElement && event.target.type === "date") {
+    handleInputDateChange(event.target);
+    return;
   }
-  return
-}
+  return;
+};
