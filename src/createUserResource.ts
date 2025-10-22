@@ -7,14 +7,16 @@ type Options = {
   serviceName: string;
   spSessionId: string;
 };
-// 创建用户资源信息（Mock 数据）
+// Create user resource information (Mock data)
 export function createUserResource({ apiKey, userId, serviceName, spSessionId }: Options) {
-  // 模拟用户信息 - 在实际应用中这些数据应该来自认证系统
+  // Mock user information - in a real application, this data should come from an authentication system
   const mockUserInfo = {
-    email: "harry@example.com",
+    // TODO:
+    email: "john_doe@example.com",
     username: "john_doe",
-    apiKey,
-    userId,
+    apiKey: apiKey || '',
+    userId: userId || '',
+
     spSessionId,
     userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
     language: typeof navigator !== "undefined" ? navigator.language : "en-US",
@@ -25,7 +27,7 @@ export function createUserResource({ apiKey, userId, serviceName, spSessionId }:
   };
 
   const resource = resourceFromAttributes({
-    // 用户特定属性
+    // User-specific attributes
     "user.email": mockUserInfo.email,
     "user.username": mockUserInfo.username,
     "user.id": mockUserInfo.userId,

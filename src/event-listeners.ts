@@ -1,4 +1,4 @@
-// event-listeners.ts - 自动事件监听器
+// event-listeners.ts - Automatic event listeners
 import { trace } from "@opentelemetry/api";
 import {
   recordDragEvent,
@@ -18,10 +18,10 @@ let isGlobalScrollRecordingEnabled = false;
 let globalScrollEventHandler: ((event: Event) => void) | null = null;
 
 type Configs = {
-  /** 是否开启滚动监听, 默认不开启 */
+  /** Whether to enable scroll listening, disabled by default */
   observeScroll?: boolean;
 };
-// 初始化所有事件监听器
+// Initialize all event listeners
 export function initializeEventListeners({ observeScroll }: Configs) {
   if (typeof window === "undefined") {
     console.log("⚠️ Skipping event listeners initialization on server side");
@@ -30,18 +30,18 @@ export function initializeEventListeners({ observeScroll }: Configs) {
 
   console.log("🎧 Initializing event listeners...");
 
-  // 配置是否开启滚动监听
+  // Configure whether to enable scroll listening
   disableGlobalScrollRecording();
   if (observeScroll === true) {
     enableGlobalScrollRecording();
   }
 
-  // 页面卸载监听
+  // Page unload listener
   window.addEventListener("beforeunload", () => {
     recordPageUnload();
   });
 
-  // 页面缩放监听
+  // Page zoom listener
   let lastZoom = window.devicePixelRatio;
   const zoomObserver = new ResizeObserver(() => {
     const currentZoom = window.devicePixelRatio;
@@ -52,7 +52,7 @@ export function initializeEventListeners({ observeScroll }: Configs) {
   });
   zoomObserver.observe(document.body);
 
-  // 滚动事件监听
+  // Scroll event listener
   globalScrollEventHandler = () => {
     // Only record if global scroll recording is enabled
     if (isGlobalScrollRecordingEnabled) {
@@ -64,12 +64,12 @@ export function initializeEventListeners({ observeScroll }: Configs) {
   });
   console.log("📜 Global scroll event listener initialized");
 
-  // 鼠标移动监听（节流）
+  // Mouse move listener (throttled)
   document.addEventListener("mousemove", (event) => {
     recordMouseMove(event.clientX, event.clientY);
   });
 
-  // Hover 事件监听
+  // Hover event listener
   document.addEventListener(
     "mouseenter",
     (event) => {
@@ -90,7 +90,7 @@ export function initializeEventListeners({ observeScroll }: Configs) {
     true,
   );
 
-  // 拖拽事件监听
+  // Drag event listener
   document.addEventListener("dragstart", (event) => {
     if (event.target instanceof HTMLElement) {
       recordDragEvent("start", event.target, {
@@ -114,7 +114,7 @@ export function initializeEventListeners({ observeScroll }: Configs) {
     }
   });
 
-  // 键盘快捷键监听
+  // Keyboard shortcut listener
   document.addEventListener("keydown", (event) => {
     const modifiers: string[] = [];
     if (event.ctrlKey) modifiers.push("Ctrl");
@@ -122,30 +122,30 @@ export function initializeEventListeners({ observeScroll }: Configs) {
     if (event.altKey) modifiers.push("Alt");
     if (event.shiftKey) modifiers.push("Shift");
 
-    // 只记录有修饰键的快捷键
+    // Only record shortcuts with modifier keys
     if (modifiers.length > 0) {
       recordKeyboardShortcut(event.key, modifiers, event.target as HTMLElement);
     }
   });
 
-  // 表单取消监听
+  // Form cancellation listener
   document.addEventListener("reset", (event) => {
     if (event.target instanceof HTMLFormElement) {
       recordFormCancel(event.target, "reset");
     }
   });
 
-  // SPA 路由变化监听（History API）
+  // SPA route change listener (History API)
   let currentUrl = window.location.href;
 
-  // 监听 popstate 事件（浏览器前进/后退）
+  // Listen for popstate events (browser back/forward)
   window.addEventListener("popstate", () => {
     const newUrl = window.location.href;
     recordRouteChange(currentUrl, newUrl, "back");
     currentUrl = newUrl;
   });
 
-  // 重写 pushState 和 replaceState 方法
+  // Override pushState and replaceState methods
   const originalPushState = history.pushState;
   const originalReplaceState = history.replaceState;
 
@@ -163,7 +163,7 @@ export function initializeEventListeners({ observeScroll }: Configs) {
     currentUrl = newUrl;
   };
 
-  // 双击和右键监听
+  // Double-click and right-click listeners
   document.addEventListener("dblclick", (event) => {
     if (event.target instanceof HTMLElement) {
       const tracer = trace.getTracer("web-interaction");

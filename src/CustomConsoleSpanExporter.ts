@@ -1,4 +1,4 @@
-// 创建控制台导出器（用于开发环境）
+// Create a console exporter (for development environment)
 export class CustomConsoleSpanExporter {
   export(spans: any, resultCallback: any) {
     // console.log(`🔍 Exporting ${spans.length} spans`);
@@ -11,12 +11,12 @@ export class CustomConsoleSpanExporter {
       console.log(`  Trace ID: ${span.spanContext().traceId}`);
       console.log(`  Duration: ${span.duration?.[0] || 0}ms`);
 
-      // 显示资源属性
+      // Display resource attributes
       if (span.resource && span.resource.attributes) {
         console.log(`  📋 Resource Attributes:`, JSON.stringify(span.resource.attributes, null, 2));
       }
 
-      // 显示 span 属性
+      // Display span attributes
       if (span.attributes && Object.keys(span.attributes).length > 0) {
         console.log(`  🏷️  Span Attributes:`, JSON.stringify(span.attributes, null, 2));
       }

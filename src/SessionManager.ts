@@ -1,9 +1,9 @@
 /**
- * SessionId 管理器
- * 统一管理sessionId的生成和获取
+ * SessionId Manager
+ * Manages the generation and retrieval of session Ids.
  */
 
-// 生成UUID函数
+// Function to generate a UUID
 function generateUUID(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     const r = (Math.random() * 16) | 0;
@@ -12,13 +12,13 @@ function generateUUID(): string {
   });
 }
 
-// 生成sessionId
+// Generate a sessionId
 function generateSessionId(): string {
   const uuid = generateUUID();
   return `sp-session-${uuid}`;
 }
 
-// 获取sessionId（从sessionStorage或生成新的）
+// Get the sessionId (from sessionStorage or generate a new one)
 export function getSessionId(): string {
   if (typeof window === "undefined") return "";
 
@@ -33,7 +33,7 @@ export function getSessionId(): string {
   return sessionId;
 }
 
-// 重置sessionId（清除当前的并生成新的）
+// Reset the sessionId (clear the current one and generate a new one)
 export function resetSessionId(): string {
   if (typeof window === "undefined") return "";
 
@@ -44,7 +44,7 @@ export function resetSessionId(): string {
   return newSessionId;
 }
 
-// 获取当前sessionId（不生成新的）
+// Get the current sessionId (without generating a new one)
 export function getCurrentSessionId(): string | null {
   if (typeof window === "undefined") return null;
   return sessionStorage.getItem("x-sp-session-id");

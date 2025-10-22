@@ -1,7 +1,7 @@
 import { trace } from "@opentelemetry/api";
 import { getElementXPath } from "./getElementXPath";
 
-// 处理select标签的change事件
+// Handle change events for select elements
 const handleSelectChange = (target: HTMLSelectElement) => {
   const spanType = "select_change";
   const tracer = trace.getTracer("web-interaction");
@@ -25,7 +25,7 @@ const handleSelectChange = (target: HTMLSelectElement) => {
   });
 };
 
-// 处理input[type='date']标签的change事件
+// Handle change events for input[type='date'] elements
 const handleInputDateChange = (target: HTMLInputElement) => {
   const spanType = "input_date_change";
   const tracer = trace.getTracer("web-interaction");
