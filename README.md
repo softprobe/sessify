@@ -2,6 +2,16 @@
 
 This guide covers the installation and usage of the Softprobe Web SDK.
 
+## Features
+
+The Softprobe Web SDK is designed to provide comprehensive insights into your web application's performance and user behavior. Key features include:
+
+- **Automatic Performance Monitoring**: Automatically captures and reports key page load performance metrics.
+- **User Interaction Tracking**: Records user interactions such as clicks, scrolls, and form submissions to help you understand user journeys.
+- **Network Request Tracing**: Monitors all `fetch` and `XMLHttpRequest` requests to identify slow or failing API calls.
+- **Environment and Session Recording**: Gathers valuable context by recording browser, OS, and device information, and groups all events within a single user session.
+- **Custom Instrumentation**: Provides a simple API to create custom spans for tracing specific business logic or user interactions.
+
 ## Installation
 
 Install the package using your preferred package manager:
@@ -14,11 +24,12 @@ npm install @softprobe/web-inspector
 
 ### Initialization
 
-Initialize the inspector in your application's entry point.
+Initialize the inspector in your web application's entry point.
 
 ```typescript
 import { initInspector } from "@softprobe/web-inspector";
 
+// Only need to call register once
 export function register() {
   // Initialize the client
   initInspector({
@@ -35,8 +46,8 @@ export function register() {
     .then(({ provider }) => {
       console.log("Softprobe inspector initialized successfully.");
     })
-    .catch((err) => {
-      console.error("Failed to initialize Softprobe inspector:", err);
+    .catch((error) => {
+      console.error("Failed to initialize Softprobe inspector:", error);
     });
 }
 ```
