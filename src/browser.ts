@@ -26,7 +26,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
     console.log("🚀 Starting OpenTelemetry initialization...");
     const spSessionId = getSessionId();
 
-    // 构造processor
+    // Construct processor
     const spanProcessors: SpanProcessor[] = [];
     if (config.env === "dev") {
       spanProcessors.push(new SimpleSpanProcessor(new CustomConsoleSpanExporter()));
@@ -41,7 +41,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
       );
     }
 
-    // 构造resource
+    // Construct resource
     const resource = createUserResource({
       apiKey: config.apiKey,
       userId: config.userId,
@@ -49,14 +49,14 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
       spSessionId: spSessionId,
     });
 
-    // 构造provider
+    // Construct provider
     const provider = new WebTracerProvider({
       resource,
       spanProcessors,
     });
     console.log("✅ WebTracerProvider created");
 
-    // 注册 provider 和 context manager
+    // Register provider and context manager
     provider.register({
       contextManager: new ZoneContextManager(),
       propagator: new CompositePropagator({
@@ -71,12 +71,12 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
     });
     console.log("✅ Provider registered with ZoneContextManager");
 
-    // 注册自动检测
+    // Register auto-instrumentations
     try {
       registerInstrumentations({
         instrumentations: [
           getWebAutoInstrumentations({
-            // 启用所有自动检测，使用默认配置
+            // Enable all auto-instrumentations with default configurations
             "@opentelemetry/instrumentation-user-interaction": {
               eventNames: [
                 "click",
@@ -89,12 +89,12 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
                 "blur",
               ],
             },
-            // 自定义 Fetch 检测
+            // Custom Fetch instrumentation
             "@opentelemetry/instrumentation-fetch": {
               propagateTraceHeaderCorsUrls: [/.*/],
               applyCustomAttributesOnSpan: (span: any, request: any, result: any) => {
                 try {
-                  // 记录请求信息
+                  // Record request information
                   if (typeof request === "string") {
                     span.setAttribute("http.request.url", request);
                     span.setAttribute("http.request.method", "GET");
@@ -102,7 +102,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
                     span.setAttribute("http.request.url", request.url);
                     span.setAttribute("http.request.method", request.method);
 
-                    // 记录请求头
+                    // Record request headers
                     if (request.headers) {
                       const headers =
                         typeof request.headers.entries === "function"
@@ -125,12 +125,12 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
                     }
                   }
 
-                  // 记录响应信息
+                  // Record response information
                   if (result instanceof Response) {
                     span.setAttribute("http.response.status", result.status);
                     span.setAttribute("http.response.status_text", result.statusText);
 
-                    // 记录响应头
+                    // Record response headers
                     const responseHeaders = Object.fromEntries(result.headers.entries());
                     const importantResponseHeaders = [
                       "content-type",
@@ -151,7 +151,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
                       Object.keys(responseHeaders).length,
                     );
 
-                    // 记录响应体大小（不记录内容，避免隐私问题）
+                    // Record response body size (do not record content to avoid privacy issues)
                     if (result.headers.get("content-length")) {
                       span.setAttribute(
                         "http.response.body.size",
@@ -187,9 +187,9 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
     const loader = () => {
       setTimeout(() => {
         Promise.all([
-          // 初始化环境信息
+          // Initialize environment information
           import("./environment-recorder"),
-          // 初始化事件监听器
+          // Initialize event listeners
           import("./event-listeners"),
         ])
           .then(([{ recordEnvironmentInfo, recordPageLoadInfo }, { initializeEventListeners }]) => {
@@ -205,18 +205,18 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
           .catch((error) => {
             reject(error);
           });
-      }, 1000); // 延迟1秒确保所有资源加载完成
+      }, 1000); // Delay for 1 second to ensure all resources are loaded
     };
 
-    // 自动记录环境信息和初始化事件监听器
+    // Automatically record environment information and initialize event listeners
     if (typeof window !== "undefined") {
-      // 等待页面加载完成后记录环境信息
+      // Record environment information after the page has loaded
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
           loader();
         });
       } else {
-        // 页面已经加载完成
+        // The page has already loaded
         loader();
       }
     }

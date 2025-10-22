@@ -1,61 +1,82 @@
-# @softprobe/web-inspector
+# Web SDK (`@softprobe/web-inspector`)
 
-## 安装
+This guide covers the installation and usage of the Softprobe Web SDK.
+
+## Installation
+
+Install the package using your preferred package manager:
 
 ```bash
 npm install @softprobe/web-inspector
 ```
 
-## 使用
+## Usage
 
-### 初始化配置
+### Initialization
+
+Initialize the inspector in your application's entry point.
 
 ```typescript
 import { initInspector } from "@softprobe/web-inspector";
 
 export function register() {
-  // 客户端初始化
+  // Initialize the client
   initInspector({
-    apiKey: "YOUR_API_KEY",
-    userId: "YOUR_USER_ID",
-    serviceName: "YOUR_BUSINESS_SOURCE",
-    // 上报数据地址: <INSPECTOR_COLLECTOR_URL>/v1/traces
+    apiKey: "",
+    userId: "",
+    serviceName: "YOUR_SERVICE_NAME",
+    // Data collector endpoint: <INSPECTOR_COLLECTOR_URL>/v1/traces
     collectorEndpoint: process.env.INSPECTOR_COLLECTOR_URL!,
-    // 开发环境自动启用Console日志
+    // Automatically enables console logging in development
     env: "dev",
-
+    // Optional: disable scroll observation
     observeScroll: false,
   })
     .then(({ provider }) => {
-      console.log("Success");
+      console.log("Softprobe inspector initialized successfully.");
     })
     .catch((err) => {
-      console.log("Failure");
+      console.error("Failed to initialize Softprobe inspector:", err);
     });
 }
 ```
 
-### 手动创建 Span (示例)
+### Creating Spans Manually
+
+You can create custom spans to trace specific business logic or user interactions.
 
 ```typescript
-// pages/index.tsx
+// Example in a React component (e.g., pages/index.tsx)
 import { trace } from '@softprobe/web-inspector';
 
 export default function Home() {
   const handleClick = () => {
+    // Get a tracer instance
     const tracer = trace.getTracer('nextjs-tracer');
+
+    // Start a new span
     const span = tracer.startSpan('checkout_process');
 
     try {
-      // 业务逻辑...
+      // Your business logic here...
+      // Example: processing items in a shopping cart
+
+      // Add attributes to the span for context
       span.setAttribute('item_count', 3);
+      span.setAttribute('user_tier', 'gold');
+
+      // Set the span status to OK on success
       span.setStatus({ code: trace.SpanStatusCode.OK });
+
     } catch (error) {
+      // Set the span status to ERROR on failure
       span.setStatus({
         code: trace.SpanStatusCode.ERROR,
         message: error.message
       });
+
     } finally {
+      // End the span to record it
       span.end();
     }
   };

@@ -1,38 +1,38 @@
-// environment-recorder.ts - 环境信息记录器
+// environment-recorder.ts - Environment information recorder
 import { trace } from "@opentelemetry/api";
 
 export function recordEnvironmentInfo(sessionId?: string) {
   const tracer = trace.getTracer("web-env");
   tracer.startActiveSpan("session.env", (span) => {
     try {
-      // 浏览器与系统
+      // Browser and system
       span.setAttribute("browser.user_agent", navigator.userAgent);
-      span.setAttribute("browser.platform", navigator.platform); // OS 信息
+      span.setAttribute("browser.platform", navigator.platform); // OS information
       span.setAttribute("device.pixel_ratio", window.devicePixelRatio);
 
-      // 屏幕 & 视口
+      // Screen & viewport
       span.setAttribute("screen.width", window.screen.width);
       span.setAttribute("screen.height", window.screen.height);
       span.setAttribute("viewport.width", window.innerWidth);
       span.setAttribute("viewport.height", window.innerHeight);
 
-      // 网络 & 位置
+      // Network & location
       const conn = (navigator as any).connection;
       if (conn) {
-        span.setAttribute("network.effectiveType", conn.effectiveType); // wifi/4g/…
+        span.setAttribute("network.effectiveType", conn.effectiveType); // wifi/4g/...
         span.setAttribute("network.rtt", conn.rtt);
       }
       span.setAttribute("browser.timezone", Intl.DateTimeFormat().resolvedOptions().timeZone);
       span.setAttribute("browser.language", navigator.language);
 
-      // 会话信息
+      // Session information
       span.setAttribute("page.url", location.href);
       span.setAttribute("page.referrer", document.referrer || "direct");
       if (sessionId) {
-        span.setAttribute("session.id", sessionId); // 记得脱敏/加密
+        span.setAttribute("session.id", sessionId); // Remember to anonymize/encrypt
       }
 
-      // 也可以解析 URL 中的 UTM 参数
+      // You can also parse UTM parameters from the URL
       const urlParams = new URLSearchParams(location.search);
       ["utm_source", "utm_medium", "utm_campaign"].forEach((key) => {
         if (urlParams.get(key)) {
@@ -50,12 +50,12 @@ export function recordEnvironmentInfo(sessionId?: string) {
   });
 }
 
-// 记录页面加载信息
+// Record page load information
 export function recordPageLoadInfo() {
   const tracer = trace.getTracer("web-page");
   tracer.startActiveSpan("page.load", (span) => {
     try {
-      // 页面加载性能
+      // Page load performance
       if (window.performance && window.performance.timing) {
         const timing = window.performance.timing;
         const loadTime = timing.loadEventEnd - timing.navigationStart;
@@ -68,14 +68,14 @@ export function recordPageLoadInfo() {
         span.setAttribute("page.request_time", timing.responseEnd - timing.requestStart);
       }
 
-      // 页面信息
+      // Page information
       span.setAttribute("page.title", document.title);
       span.setAttribute("page.url", window.location.href);
       span.setAttribute("page.path", window.location.pathname);
       span.setAttribute("page.search", window.location.search);
       span.setAttribute("page.hash", window.location.hash);
 
-      // 文档信息
+      // Document information
       span.setAttribute("document.ready_state", document.readyState);
       span.setAttribute("document.character_set", document.characterSet);
       span.setAttribute("document.content_type", document.contentType);
@@ -90,7 +90,7 @@ export function recordPageLoadInfo() {
   });
 }
 
-// 记录用户交互信息
+// Record user interaction information
 export function recordUserInteraction(
   action: string,
   target?: HTMLElement,
@@ -99,18 +99,18 @@ export function recordUserInteraction(
   const tracer = trace.getTracer("web-interaction");
   tracer.startActiveSpan(`user.interaction.${action}`, (span) => {
     try {
-      // 基础交互信息
+      // Basic interaction information
       span.setAttribute("user.action", action);
       span.setAttribute("user.action.timestamp", new Date().toISOString());
 
-      // 目标元素信息
+      // Target element information
       if (target) {
         span.setAttribute("target.tag_name", target.tagName);
         span.setAttribute("target.id", target.id || "");
         span.setAttribute("target.class_name", target.className || "");
         span.setAttribute("target.text_content", target.textContent?.substring(0, 100) || "");
 
-        // 位置信息
+        // Position information
         const rect = target.getBoundingClientRect();
         span.setAttribute("target.position.x", rect.x);
         span.setAttribute("target.position.y", rect.y);
@@ -118,12 +118,12 @@ export function recordUserInteraction(
         span.setAttribute("target.size.height", rect.height);
       }
 
-      // 页面上下文
+      // Page context
       span.setAttribute("page.url", window.location.href);
       span.setAttribute("page.scroll_y", window.scrollY);
       span.setAttribute("page.scroll_x", window.scrollX);
 
-      // 自定义详情
+      // Custom details
       if (details) {
         Object.entries(details).forEach(([key, value]) => {
           span.setAttribute(`custom.${key}`, String(value));
@@ -140,7 +140,7 @@ export function recordUserInteraction(
   });
 }
 
-// 记录网络请求信息
+// Record network request information
 export function recordNetworkRequest(
   url: string,
   method: string,
@@ -161,7 +161,7 @@ export function recordNetworkRequest(
   const tracer = trace.getTracer("web-network");
   tracer.startActiveSpan("network.request", (span) => {
     try {
-      // 基础请求信息
+      // Basic request information
       span.setAttribute("http.method", method);
       span.setAttribute("http.url", url);
       span.setAttribute("http.scheme", new URL(url).protocol.replace(":", ""));
@@ -180,10 +180,10 @@ export function recordNetworkRequest(
       span.setAttribute("request.timestamp", new Date().toISOString());
       span.setAttribute("page.url", window.location.href);
 
-      // 记录请求详情
+      // Record request details
       if (requestData) {
         if (requestData.headers) {
-          // 记录重要的请求头
+          // Record important request headers
           const importantHeaders = [
             "content-type",
             "authorization",
@@ -202,7 +202,7 @@ export function recordNetworkRequest(
         }
 
         if (requestData.body) {
-          // 记录请求体信息（不记录敏感内容）
+          // Record request body information (do not record sensitive content)
           const bodyStr =
             typeof requestData.body === "string"
               ? requestData.body
@@ -210,7 +210,7 @@ export function recordNetworkRequest(
           span.setAttribute("request.body_size", bodyStr.length);
           span.setAttribute("request.has_body", true);
 
-          // 只记录非敏感请求体的前100个字符
+          // Only record the first 100 characters of non-sensitive request bodies
           if (
             bodyStr.length <= 100 &&
             !bodyStr.toLowerCase().includes("password") &&
@@ -225,10 +225,10 @@ export function recordNetworkRequest(
         }
       }
 
-      // 记录响应详情
+      // Record response details
       if (responseData) {
         if (responseData.headers) {
-          // 记录重要的响应头
+          // Record important response headers
           const importantResponseHeaders = [
             "content-type",
             "content-length",
@@ -247,7 +247,7 @@ export function recordNetworkRequest(
         }
 
         if (responseData.body) {
-          // 记录响应体信息
+          // Record response body information
           const bodyStr =
             typeof responseData.body === "string"
               ? responseData.body
@@ -255,7 +255,7 @@ export function recordNetworkRequest(
           span.setAttribute("response.body_size", bodyStr.length);
           span.setAttribute("response.has_body", true);
 
-          // 只记录响应体的前200个字符
+          // Only record the first 200 characters of the response body
           if (bodyStr.length <= 200) {
             span.setAttribute("response.body_preview", bodyStr);
           } else {
@@ -287,7 +287,7 @@ export function recordNetworkRequest(
   });
 }
 
-// 记录页面卸载信息
+// Record page unload information
 export function recordPageUnload() {
   const tracer = trace.getTracer("web-page");
   tracer.startActiveSpan("page.unload", (span) => {
@@ -298,7 +298,7 @@ export function recordPageUnload() {
       span.setAttribute("page.scroll_x", window.scrollX);
       span.setAttribute("page.unload_timestamp", new Date().toISOString());
 
-      // 记录页面停留时间
+      // Record page stay time
       if (window.performance && window.performance.timing) {
         const timing = window.performance.timing;
         const stayTime = Date.now() - timing.loadEventEnd;
@@ -315,7 +315,7 @@ export function recordPageUnload() {
   });
 }
 
-// 记录路由变化（SPA history API）
+// Record route changes (SPA history API)
 export function recordRouteChange(
   fromUrl: string,
   toUrl: string,
@@ -341,7 +341,7 @@ export function recordRouteChange(
   });
 }
 
-// 记录页面缩放
+// Record page zoom
 export function recordPageZoom(scale: number) {
   const tracer = trace.getTracer("web-viewport");
   tracer.startActiveSpan("viewport.zoom", (span) => {
@@ -361,27 +361,27 @@ export function recordPageZoom(scale: number) {
   });
 }
 
-// 记录鼠标移动轨迹（节流）
+// Record mouse movement trajectory (throttled)
 let mouseMoveBuffer: Array<{ x: number; y: number; timestamp: number }> = [];
 let mouseMoveTimer: NodeJS.Timeout | null = null;
 let lastMouseMoveTime = 0;
-const MOUSE_MOVE_THROTTLE_MS = 100; // 每100ms最多记录一次
-const MOUSE_MOVE_BATCH_SIZE = 10; // 每10个点或每500ms处理一次
+const MOUSE_MOVE_THROTTLE_MS = 100; // Record at most once every 100ms
+const MOUSE_MOVE_BATCH_SIZE = 10; // Process every 10 points or every 500ms
 
 export function recordMouseMove(x: number, y: number) {
   // const now = Date.now();
-  // // 节流：如果距离上次记录时间太短，直接返回
+  // // Throttle: if the time since the last record is too short, return directly
   // if (now - lastMouseMoveTime < MOUSE_MOVE_THROTTLE_MS) {
   //   return;
   // }
   // lastMouseMoveTime = now;
   // mouseMoveBuffer.push({ x, y, timestamp: now });
-  // // 如果缓冲区达到批量大小，立即处理
+  // // If the buffer reaches the batch size, process it immediately
   // if (mouseMoveBuffer.length >= MOUSE_MOVE_BATCH_SIZE) {
   //   processMouseMoveBuffer();
   //   return;
   // }
-  // // 设置定时器，如果500ms内没有达到批量大小，也会处理
+  // // Set a timer, if the batch size is not reached within 500ms, it will also be processed
   // if (!mouseMoveTimer) {
   //   mouseMoveTimer = setTimeout(() => {
   //     processMouseMoveBuffer();
@@ -408,7 +408,7 @@ function processMouseMoveBuffer() {
       );
       span.setAttribute("page.url", window.location.href);
 
-      // 计算移动距离
+      // Calculate movement distance
       let totalDistance = 0;
       for (let i = 1; i < mouseMoveBuffer.length; i++) {
         const dx = mouseMoveBuffer[i].x - mouseMoveBuffer[i - 1].x;
@@ -428,7 +428,7 @@ function processMouseMoveBuffer() {
     }
   });
 
-  // 清理缓冲区
+  // Clear buffer
   mouseMoveBuffer = [];
   if (mouseMoveTimer) {
     clearTimeout(mouseMoveTimer);
@@ -436,7 +436,7 @@ function processMouseMoveBuffer() {
   }
 }
 
-// 记录 hover 事件
+// Record hover event
 export function recordHoverEvent(action: "enter" | "leave", target: HTMLElement) {
   // const tracer = trace.getTracer('web-hover');
   // tracer.startActiveSpan(`hover.${action}`, (span) => {
@@ -460,7 +460,7 @@ export function recordHoverEvent(action: "enter" | "leave", target: HTMLElement)
   // });
 }
 
-// 记录拖拽事件
+// Record drag event
 export function recordDragEvent(
   action: "start" | "move" | "end",
   target: HTMLElement,
@@ -491,7 +491,7 @@ export function recordDragEvent(
   });
 }
 
-// 记录键盘快捷键
+// Record keyboard shortcut
 export function recordKeyboardShortcut(key: string, modifiers: string[], target?: HTMLElement) {
   const tracer = trace.getTracer("web-keyboard");
   tracer.startActiveSpan("keyboard.shortcut", (span) => {
@@ -517,17 +517,17 @@ export function recordKeyboardShortcut(key: string, modifiers: string[], target?
   });
 }
 
-// 记录滚动事件
+// Record scroll event
 let scrollBuffer: Array<{ x: number; y: number; timestamp: number }> = [];
 let scrollTimer: NodeJS.Timeout | null = null;
 let lastScrollTime = 0;
-const SCROLL_THROTTLE_MS = 100; // 每100ms最多记录一次
-const SCROLL_BATCH_SIZE = 5; // 每5个点或每500ms处理一次
+const SCROLL_THROTTLE_MS = 100; // Record at most once every 100ms
+const SCROLL_BATCH_SIZE = 5; // Process every 5 points or every 500ms
 
 export function recordScrollEvent(x: number, y: number, target?: HTMLElement | Window) {
   const now = Date.now();
 
-  // 节流：如果距离上次记录时间太短，直接返回
+  // Throttle: if the time since the last record is too short, return directly
   if (now - lastScrollTime < SCROLL_THROTTLE_MS) {
     return;
   }
@@ -535,13 +535,13 @@ export function recordScrollEvent(x: number, y: number, target?: HTMLElement | W
   lastScrollTime = now;
   scrollBuffer.push({ x, y, timestamp: now });
 
-  // 如果缓冲区达到批量大小，立即处理
+  // If the buffer reaches the batch size, process it immediately
   if (scrollBuffer.length >= SCROLL_BATCH_SIZE) {
     processScrollBuffer(target);
     return;
   }
 
-  // 设置定时器，如果500ms内没有达到批量大小，也会处理
+  // Set a timer, if the batch size is not reached within 500ms, it will also be processed
   if (!scrollTimer) {
     scrollTimer = setTimeout(() => {
       processScrollBuffer(target);
@@ -569,7 +569,7 @@ function processScrollBuffer(target?: HTMLElement | Window) {
       span.setAttribute("scroll.timestamp", new Date().toISOString());
       span.setAttribute("page.url", window.location.href);
 
-      // 计算滚动距离
+      // Calculate scroll distance
       const deltaX = scrollBuffer[scrollBuffer.length - 1].x - scrollBuffer[0].x;
       const deltaY = scrollBuffer[scrollBuffer.length - 1].y - scrollBuffer[0].y;
       const totalDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -578,11 +578,11 @@ function processScrollBuffer(target?: HTMLElement | Window) {
       span.setAttribute("scroll.delta_y", deltaY);
       span.setAttribute("scroll.total_distance", totalDistance);
 
-      // 滚动方向
+      // Scroll direction
       const direction = deltaY > 0 ? "down" : deltaY < 0 ? "up" : "none";
       span.setAttribute("scroll.direction", direction);
 
-      // 目标信息
+      // Target information
       if (target && target !== window) {
         const element = target as HTMLElement;
         span.setAttribute("scroll.target.tag_name", element.tagName);
@@ -592,7 +592,7 @@ function processScrollBuffer(target?: HTMLElement | Window) {
         span.setAttribute("scroll.target", "window");
       }
 
-      // 视口信息
+      // Viewport information
       span.setAttribute("viewport.width", window.innerWidth);
       span.setAttribute("viewport.height", window.innerHeight);
       span.setAttribute("document.scroll_width", document.documentElement.scrollWidth);
@@ -609,7 +609,7 @@ function processScrollBuffer(target?: HTMLElement | Window) {
     }
   });
 
-  // 清理缓冲区
+  // Clear buffer
   scrollBuffer = [];
   if (scrollTimer) {
     clearTimeout(scrollTimer);
@@ -617,7 +617,7 @@ function processScrollBuffer(target?: HTMLElement | Window) {
   }
 }
 
-// 记录表单取消
+// Record form cancellation
 export function recordFormCancel(form: HTMLFormElement, reason?: string) {
   const tracer = trace.getTracer("web-form");
   tracer.startActiveSpan("form.cancel", (span) => {
