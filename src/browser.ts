@@ -1,4 +1,7 @@
-import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
+import {
+  getWebAutoInstrumentations,
+  InstrumentationConfigMap,
+} from "@opentelemetry/auto-instrumentations-web";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import {
   CompositePropagator,
@@ -24,6 +27,12 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
 }> {
   return new Promise((resolve, reject) => {
     console.log("🚀 Starting OpenTelemetry initialization...");
+
+    const { instrumentations } = config;
+    const isNetworkInstrumentationEnabled = instrumentations?.network ?? true;
+    const isInteractionInstrumentationEnabled = instrumentations?.interaction ?? false;
+    const isEnvironmentRecordingEnabled = instrumentations?.environment ?? false;
+
     const spSessionId = getSessionId();
 
     // 构造processor
@@ -73,106 +82,99 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
 
     // 注册自动检测
     try {
-      registerInstrumentations({
-        instrumentations: [
-          getWebAutoInstrumentations({
-            // 启用所有自动检测，使用默认配置
-            "@opentelemetry/instrumentation-user-interaction": {
-              eventNames: [
-                "click",
-                "scroll",
-                "wheel",
-                "submit",
-                "keypress",
-                "change",
-                "focus",
-                "blur",
-              ],
-            },
-            // 自定义 Fetch 检测
-            "@opentelemetry/instrumentation-fetch": {
-              propagateTraceHeaderCorsUrls: [/.*/],
-              applyCustomAttributesOnSpan: (span: any, request: any, result: any) => {
-                try {
-                  // 记录请求信息
-                  if (typeof request === "string") {
-                    span.setAttribute("http.request.url", request);
-                    span.setAttribute("http.request.method", "GET");
-                  } else {
-                    span.setAttribute("http.request.url", request.url);
-                    span.setAttribute("http.request.method", request.method);
+      const instrumentationsOptions: InstrumentationConfigMap = {};
 
-                    // 记录请求头
-                    if (request.headers) {
-                      const headers =
-                        typeof request.headers.entries === "function"
-                          ? Object.fromEntries(request.headers.entries())
-                          : JSON.parse(JSON.stringify(request.headers));
-                      const importantHeaders = [
-                        "content-type",
-                        "authorization",
-                        "user-agent",
-                        "accept",
-                        "cache-control",
-                      ];
-                      importantHeaders.forEach((header) => {
-                        const value = headers[header] || headers[header.toLowerCase()];
-                        if (value) {
-                          span.setAttribute(`http.request.header.${header}`, value);
-                        }
-                      });
-                      span.setAttribute("http.request.headers_count", Object.keys(headers).length);
+      if (isInteractionInstrumentationEnabled) {
+        instrumentationsOptions["@opentelemetry/instrumentation-user-interaction"] = {
+          eventNames: ["click", "scroll", "wheel", "submit", "keypress", "change", "focus", "blur"],
+        };
+      }
+
+      if (isNetworkInstrumentationEnabled) {
+        instrumentationsOptions["@opentelemetry/instrumentation-fetch"] = {
+          propagateTraceHeaderCorsUrls: [/.*/],
+          applyCustomAttributesOnSpan: (span: any, request: any, result: any) => {
+            try {
+              // 记录请求信息
+              if (typeof request === "string") {
+                span.setAttribute("http.request.url", request);
+                span.setAttribute("http.request.method", "GET");
+              } else {
+                span.setAttribute("http.request.url", request.url);
+                span.setAttribute("http.request.method", request.method);
+
+                // 记录请求头
+                if (request.headers) {
+                  const headers =
+                    typeof request.headers.entries === "function"
+                      ? Object.fromEntries(request.headers.entries())
+                      : JSON.parse(JSON.stringify(request.headers));
+                  const importantHeaders = [
+                    "content-type",
+                    "authorization",
+                    "user-agent",
+                    "accept",
+                    "cache-control",
+                  ];
+                  importantHeaders.forEach((header) => {
+                    const value = headers[header] || headers[header.toLowerCase()];
+                    if (value) {
+                      span.setAttribute(`http.request.header.${header}`, value);
                     }
-                  }
-
-                  // 记录响应信息
-                  if (result instanceof Response) {
-                    span.setAttribute("http.response.status", result.status);
-                    span.setAttribute("http.response.status_text", result.statusText);
-
-                    // 记录响应头
-                    const responseHeaders = Object.fromEntries(result.headers.entries());
-                    const importantResponseHeaders = [
-                      "content-type",
-                      "content-length",
-                      "cache-control",
-                      "etag",
-                      "last-modified",
-                    ];
-                    importantResponseHeaders.forEach((header) => {
-                      const value =
-                        responseHeaders[header] || responseHeaders[header.toLowerCase()];
-                      if (value) {
-                        span.setAttribute(`http.response.header.${header}`, value);
-                      }
-                    });
-                    span.setAttribute(
-                      "http.response.headers_count",
-                      Object.keys(responseHeaders).length,
-                    );
-
-                    // 记录响应体大小（不记录内容，避免隐私问题）
-                    if (result.headers.get("content-length")) {
-                      span.setAttribute(
-                        "http.response.body.size",
-                        parseInt(result.headers.get("content-length") || "0"),
-                      );
-                    }
-                  }
-
-                  console.log(
-                    `🌐 Fetch request recorded: ${span.attributes["http.request.method"]} ${span.attributes["http.request.url"]}`,
-                  );
-                } catch (error) {
-                  console.error("❌ Failed to apply custom attributes on fetch span:", error);
+                  });
+                  span.setAttribute("http.request.headers_count", Object.keys(headers).length);
                 }
-              },
-            },
-            "@opentelemetry/instrumentation-xml-http-request": {
-              propagateTraceHeaderCorsUrls: [/.*/],
-            },
-          }),
-        ],
+              }
+
+              // 记录响应信息
+              if (result instanceof Response) {
+                span.setAttribute("http.response.status", result.status);
+                span.setAttribute("http.response.status_text", result.statusText);
+
+                // 记录响应头
+                const responseHeaders = Object.fromEntries(result.headers.entries());
+                const importantResponseHeaders = [
+                  "content-type",
+                  "content-length",
+                  "cache-control",
+                  "etag",
+                  "last-modified",
+                ];
+                importantResponseHeaders.forEach((header) => {
+                  const value = responseHeaders[header] || responseHeaders[header.toLowerCase()];
+                  if (value) {
+                    span.setAttribute(`http.response.header.${header}`, value);
+                  }
+                });
+                span.setAttribute(
+                  "http.response.headers_count",
+                  Object.keys(responseHeaders).length,
+                );
+
+                // 记录响应体大小（不记录内容，避免隐私问题）
+                if (result.headers.get("content-length")) {
+                  span.setAttribute(
+                    "http.response.body.size",
+                    parseInt(result.headers.get("content-length") || "0"),
+                  );
+                }
+              }
+
+              console.log(
+                `🌐 Fetch request recorded: ${span.attributes["http.request.method"]} ${span.attributes["http.request.url"]}`,
+              );
+            } catch (error) {
+              console.error("❌ Failed to apply custom attributes on fetch span:", error);
+            }
+          },
+        };
+        instrumentationsOptions["@opentelemetry/instrumentation-xml-http-request"] = {
+          propagateTraceHeaderCorsUrls: [/.*/],
+        };
+      }
+
+      registerInstrumentations({
+        instrumentations: [getWebAutoInstrumentations(instrumentationsOptions)],
       });
       console.log("✅ Auto-instrumentations registered successfully");
     } catch (error) {
@@ -186,19 +188,40 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
 
     const loader = () => {
       setTimeout(() => {
-        Promise.all([
-          // 初始化环境信息
-          import("./environment-recorder"),
-          // 初始化事件监听器
-          import("./event-listeners"),
-        ])
-          .then(([{ recordEnvironmentInfo, recordPageLoadInfo }, { initializeEventListeners }]) => {
-            recordEnvironmentInfo(spSessionId);
-            recordPageLoadInfo();
-            console.log("🌍 Environment and page load info recorded");
+        const promisesToLoad = [];
+        const moduleNames: ("environment" | "interaction")[] = [];
 
-            initializeEventListeners({
-              observeScroll: config.observeScroll,
+        if (isEnvironmentRecordingEnabled) {
+          promisesToLoad.push(import("./environment-recorder"));
+          moduleNames.push("environment");
+        }
+        if (isInteractionInstrumentationEnabled) {
+          promisesToLoad.push(import("./event-listeners"));
+          moduleNames.push("interaction");
+        }
+
+        // 如果两个自定义模块都禁用了, 直接 resolve, 完成初始化
+        if (promisesToLoad.length === 0) {
+          console.log("ℹ️ Custom recorders (environment, interaction) are disabled.");
+          resolve({ provider });
+          return;
+        }
+
+        Promise.all(promisesToLoad)
+          .then((loadedModules) => {
+            loadedModules.forEach((module, index) => {
+              const moduleName = moduleNames[index];
+              if (moduleName === "environment") {
+                const { recordEnvironmentInfo, recordPageLoadInfo } = module as any;
+                recordEnvironmentInfo(spSessionId);
+                recordPageLoadInfo();
+                console.log("🌍 Environment and page load info recorded");
+              } else if (moduleName === "interaction") {
+                const { initializeEventListeners } = module as any;
+                initializeEventListeners({
+                  observeScroll: config.observeScroll,
+                });
+              }
             });
             resolve({ provider });
           })
