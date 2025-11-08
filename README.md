@@ -1,6 +1,6 @@
 # @softprobe/web-inspector
 
-[简体中文](./README.zh-CN.md)
+A powerful web development tool for inspecting web pages directly from your browser.
 
 ## Installation
 
@@ -8,15 +8,9 @@
 npm install @softprobe/web-inspector
 ```
 
-## Usage
+## Getting Started
 
-### Initialization
-
-Initialize the inspector at the entry point of your application (e.g., `main.ts` or `App.tsx`).
-
-**Minimal Configuration:**
-
-You only need to provide `publicKey` and `serviceName` to start monitoring network performance and reporting data to the Softprobe production environment.
+To get started, import `initInspector` at the entry point of your application and call it with your `publicKey` and `serviceName`.
 
 ```typescript
 import { initInspector } from "@softprobe/web-inspector";
@@ -27,65 +21,38 @@ initInspector({
 });
 ```
 
-**Full Configuration Options:**
+### Usage with Next.js (App Router)
 
-```typescript
-import { initInspector } from "@softprobe/web-inspector";
+First create `InspectorInitializer`, and then import and use it in your root `layout.tsx`.
 
-initInspector({
-  // (Required) Your project's public key
-  publicKey: "YOUR_PUBLIC_KEY",
-  // (Required) Your service or business line name
-  serviceName: "YOUR_SERVICE_NAME",
+```typescriptreact
+// src/components/InspectorInitializer.tsx
+'use client'
+import { useEffect } from 'react';
+import { initInspector } from '@softprobe/web-inspector';
+export const InspectorInitializer = () => {
+  useEffect(() => {
+    initInspector({
+      publicKey: 'YOUR_PUBLIC_KEY',
+      serviceName: "YOUR_SERVICE_NAME",
+    })
+  }, [])
+  return null
+}
 
-  // --- Data Export ---
-  // (Optional) Whether to enable trace reporting, defaults to true
-  enableTrace: true,
-  // (Optional) Custom endpoint to override the default ('https://o.softprobe.ai')
-  endpoint: "https://your-proxy-or-private-collector.com",
-  // (Optional) Whether to print trace info to the browser console, defaults to false
-  enableConsole: true,
+// app/layout.tsx
+import { InspectorInitializer } from '@/components/InspectorInitializer'
 
-  // --- Feature Toggles ---
-  // (Optional) Configure which features to auto-instrument
-  instrumentations: {
-    // Network request instrumentation, defaults to true
-    network: true,
-    // User interaction instrumentation (e.g., clicks), defaults to false
-    interaction: true,
-    // Page load and environment information, defaults to false
-    environment: true,
-  },
-});
-```
-
-**Note**: The `initInspector` function is a "fire-and-forget" function. It does not return a `Promise`, and all internal errors are automatically caught to avoid impacting your main application.
-
-### Manual Span Creation (Example)
-
-```typescript
-// pages/index.tsx
-import { trace } from '@softprobe/web-inspector';
-
-export default function Home() {
-  const handleClick = () => {
-    const tracer = trace.getTracer('nextjs-tracer');
-    const span = tracer.startSpan('checkout_process');
-
-    try {
-      // Business logic...
-      span.setAttribute('item_count', 3);
-      span.setStatus({ code: trace.SpanStatusCode.OK });
-    } catch (error) {
-      span.setStatus({
-        code: trace.SpanStatusCode.ERROR,
-        message: error.message
-      });
-    } finally {
-      span.end();
-    }
-  };
-
-  return <button onClick={handleClick}>Start Checkout</button>;
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <InspectorInitializer />
+      </body>
+    </html>
+  );
 }
 ```
+
+For detailed configuration options and advanced usage, please see our [API Reference](./docs/API.md).
