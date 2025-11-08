@@ -28,7 +28,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
   return new Promise((resolve, reject) => {
     console.log("🚀 Starting OpenTelemetry initialization...");
 
-    const spSessionId = getSessionId();
+    const sessionId = getSessionId();
 
     // 读取采集类型的配置
     const { instrumentations } = config;
@@ -39,7 +39,6 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
     // 读取 trace 和 console 的配置
     const isTraceEnabled = config.enableTrace ?? true;
     const isConsoleEnabled = config.enableConsole ?? false;
-
 
     // 构造processor
     const spanProcessors: SpanProcessor[] = [];
@@ -62,10 +61,8 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
 
     // 构造resource
     const resource = createUserResource({
-      apiKey: config.apiKey,
-      userId: config.userId,
-      serviceName: config.serviceName,
-      spSessionId: spSessionId,
+      publicKey: config.publicKey,
+      sessionId: sessionId,
     });
 
     // 构造provider
@@ -83,7 +80,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
           new W3CBaggagePropagator(),
           new W3CTraceContextPropagator(),
           new HttpHeaderPropagator({
-            "x-sp-session-id": spSessionId,
+            "x-sp-session-id": sessionId,
           }),
         ],
       }),
@@ -223,7 +220,7 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
               const moduleName = moduleNames[index];
               if (moduleName === "environment") {
                 const { recordEnvironmentInfo, recordPageLoadInfo } = module as any;
-                recordEnvironmentInfo(spSessionId);
+                recordEnvironmentInfo(sessionId);
                 recordPageLoadInfo();
                 console.log("🌍 Environment and page load info recorded");
               } else if (moduleName === "interaction") {
