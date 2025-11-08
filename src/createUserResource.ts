@@ -3,15 +3,16 @@ import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic
 
 type Options = {
   publicKey: string;
+  serviceName: string;
   sessionId: string;
 };
 
-export function createUserResource({ publicKey, sessionId }: Options) {
+export function createUserResource({ publicKey, serviceName, sessionId }: Options) {
   const resourceAttributes = {
     "user.session_id": sessionId,
     "user.public_key": publicKey,
 
-    [ATTR_SERVICE_NAME]: "SOFTRPOBE",
+    [ATTR_SERVICE_NAME]: serviceName,
     [ATTR_SERVICE_VERSION]: "0.0.1",
 
     "browser.user_agent": typeof navigator !== "undefined" ? navigator.userAgent : "unknown",

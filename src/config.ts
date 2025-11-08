@@ -1,6 +1,7 @@
 export type InspectorConfig = {
   // --- 核心身份认证 ---
   publicKey: string;
+  serviceName: string;
 
   // --- 数据导出配置 ---
   /**
