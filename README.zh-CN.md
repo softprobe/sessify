@@ -25,7 +25,7 @@ initInspector({
 
 首先创建 `InspectorInitializer`，然后在您的根 `layout.tsx` 文件中导入并使用它。
 
-```typescriptreact
+```typescript
 // src/components/InspectorInitializer.tsx
 'use client'
 import { useEffect } from 'react';
