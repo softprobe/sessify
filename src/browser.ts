@@ -28,26 +28,36 @@ export function initBrowserInspector(config: InspectorConfig): Promise<{
   return new Promise((resolve, reject) => {
     console.log("🚀 Starting OpenTelemetry initialization...");
 
+    const spSessionId = getSessionId();
+
+    // 读取采集类型的配置
     const { instrumentations } = config;
     const isNetworkInstrumentationEnabled = instrumentations?.network ?? true;
     const isInteractionInstrumentationEnabled = instrumentations?.interaction ?? false;
     const isEnvironmentRecordingEnabled = instrumentations?.environment ?? false;
 
-    const spSessionId = getSessionId();
+    // 读取 trace 和 console 的配置
+    const isTraceEnabled = config.enableTrace ?? true;
+    const isConsoleEnabled = config.enableConsole ?? false;
+
 
     // 构造processor
     const spanProcessors: SpanProcessor[] = [];
-    if (config.env === "dev") {
+
+    if (isConsoleEnabled) {
       spanProcessors.push(new SimpleSpanProcessor(new CustomConsoleSpanExporter()));
+      console.log("✅ Console exporter enabled.");
     }
-    if (!!config.collectorEndpoint) {
-      spanProcessors.push(
-        new BatchSpanProcessor(
-          new OTLPTraceExporter({
-            url: `${config.collectorEndpoint}/v1/traces`,
-          }),
-        ),
-      );
+
+    if (isTraceEnabled) {
+      const endpointUrl = config.endpoint || "https://o.softprobe.ai";
+      const collectorUrl = `${endpointUrl}/v1/traces`;
+      spanProcessors.push(new BatchSpanProcessor(new OTLPTraceExporter({ url: collectorUrl })));
+      console.log(`✅ Trace exporter enabled, sending data to: ${collectorUrl}`);
+    }
+
+    if (!isTraceEnabled && !isConsoleEnabled) {
+      console.warn("⚠️ Both trace and console exporters are disabled. No data will be exported.");
     }
 
     // 构造resource
