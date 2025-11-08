@@ -26,12 +26,10 @@ export function initBrowserInspector(config: InspectorConfig): void {
   try {
     console.log("🚀 Starting OpenTelemetry initialization...");
 
-
     // 读取采集类型的配置
-    const { instrumentations } = config;
-    const isNetworkInstrumentationEnabled = instrumentations?.network ?? true;
-    const isInteractionInstrumentationEnabled = instrumentations?.interaction ?? false;
-    const isEnvironmentRecordingEnabled = instrumentations?.environment ?? false;
+    const isNetworkInstrumentationEnabled = config.instrumentations?.network ?? true;
+    const isInteractionInstrumentationEnabled = config.instrumentations?.interaction ?? false;
+    const isEnvironmentRecordingEnabled = config.instrumentations?.environment ?? false;
 
     // 读取 trace 和 console 的配置
     const isTraceEnabled = config.enableTrace ?? true;
@@ -87,33 +85,26 @@ export function initBrowserInspector(config: InspectorConfig): void {
     console.log("✅ Provider registered with ZoneContextManager");
 
     // 注册自动检测
-    try {
-      const instrumentations: Instrumentation[] = []
-
-      if (isEnvironmentRecordingEnabled) {
-        instrumentations.push(new DocumentLoadInstrumentation())
-      }
-
-      if (isInteractionInstrumentationEnabled) {
-        instrumentations.push(new UserInteractionInstrumentation())
-      }
-
-      if (isNetworkInstrumentationEnabled) {
-        instrumentations.push(new XMLHttpRequestInstrumentation({
-          propagateTraceHeaderCorsUrls: [/.*/],
-        }))
-        instrumentations.push(new FetchInstrumentation({
-          propagateTraceHeaderCorsUrls: [/.*/],
-        }))
-      }
-
-      registerInstrumentations({
-        instrumentations,
-      });
-      console.log("✅ Auto-instrumentations registered successfully");
-    } catch (error) {
-      console.error("❌ Failed to register instrumentations:", error);
+    const instrumentations: Instrumentation[] = []
+    if (isEnvironmentRecordingEnabled) {
+      instrumentations.push(new DocumentLoadInstrumentation())
     }
+    if (isInteractionInstrumentationEnabled) {
+      instrumentations.push(new UserInteractionInstrumentation())
+    }
+    if (isNetworkInstrumentationEnabled) {
+      instrumentations.push(new XMLHttpRequestInstrumentation({
+        propagateTraceHeaderCorsUrls: [/.*/],
+      }))
+      instrumentations.push(new FetchInstrumentation({
+        propagateTraceHeaderCorsUrls: [/.*/],
+      }))
+    }
+    registerInstrumentations({
+      instrumentations,
+    });
+    console.log("✅ Auto-instrumentations registered successfully");
+
     console.log("🎯 OpenTelemetry auto-instrumentations initialization completed");
   } catch (error) {
     console.error(
