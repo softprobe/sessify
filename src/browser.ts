@@ -1,3 +1,4 @@
+import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import {
   CompositePropagator,
@@ -5,11 +6,7 @@ import {
   W3CTraceContextPropagator,
 } from "@opentelemetry/core";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Instrumentation, registerInstrumentations } from "@opentelemetry/instrumentation";
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { UserInteractionInstrumentation } from "@opentelemetry/instrumentation-user-interaction";
-import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import {
   BatchSpanProcessor,
   ConsoleSpanExporter,
@@ -22,8 +19,10 @@ import { createUserResource } from "./createUserResource";
 import { HttpHeaderPropagator } from "./HttpHeaderPropagator";
 import { getSessionId } from "./SessionManager";
 
-export function initBrowserInspector(config: InspectorConfig): void {
-  try {
+export function initBrowserInspector(config: InspectorConfig): Promise<{
+  provider: WebTracerProvider;
+}> {
+  return new Promise((resolve, reject) => {
     console.log("🚀 Starting OpenTelemetry initialization...");
 
     // 读取采集类型的配置
@@ -85,31 +84,35 @@ export function initBrowserInspector(config: InspectorConfig): void {
     console.log("✅ Provider registered with ZoneContextManager");
 
     // 注册自动检测
-    const instrumentations: Instrumentation[] = []
-    if (isEnvironmentRecordingEnabled) {
-      instrumentations.push(new DocumentLoadInstrumentation())
+    try {
+      registerInstrumentations({
+        instrumentations: [
+          getWebAutoInstrumentations({
+            "@opentelemetry/instrumentation-document-load": {
+              enabled: isEnvironmentRecordingEnabled,
+            },
+            "@opentelemetry/instrumentation-user-interaction": {
+              enabled: isInteractionInstrumentationEnabled,
+            },
+            "@opentelemetry/instrumentation-fetch": {
+              enabled: isNetworkInstrumentationEnabled,
+              propagateTraceHeaderCorsUrls: [/.*/],
+            },
+            "@opentelemetry/instrumentation-xml-http-request": {
+              enabled: isNetworkInstrumentationEnabled,
+              propagateTraceHeaderCorsUrls: [/.*/],
+            },
+          }),
+        ],
+      });
+      console.log("✅ Auto-instrumentations registered successfully");
+    } catch (error) {
+      console.error("❌ Failed to register instrumentations:", error);
+      return;
     }
-    if (isInteractionInstrumentationEnabled) {
-      instrumentations.push(new UserInteractionInstrumentation())
-    }
-    if (isNetworkInstrumentationEnabled) {
-      instrumentations.push(new XMLHttpRequestInstrumentation({
-        propagateTraceHeaderCorsUrls: [/.*/],
-      }))
-      instrumentations.push(new FetchInstrumentation({
-        propagateTraceHeaderCorsUrls: [/.*/],
-      }))
-    }
-    registerInstrumentations({
-      instrumentations,
-    });
-    console.log("✅ Auto-instrumentations registered successfully");
 
     console.log("🎯 OpenTelemetry auto-instrumentations initialization completed");
-  } catch (error) {
-    console.error(
-      "❌ An unexpected critical error occurred during inspector initialization:",
-      error,
-    );
-  }
+    resolve({ provider })
+    return;
+  });
 }
