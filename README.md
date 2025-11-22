@@ -221,19 +221,41 @@ npm run format
 npm run format:check
 ```
 
-## 🧪 Test Application
+## 🧪 Demo Application
 
-The project includes a test application located in the `test-app` directory, which can be used to test the library's functionality:
+The project includes a demo application located in the `demo` directory, which can be used to test and demonstrate all the library's functionality. The demo provides a user-friendly interface to interact with session management features.
 
-### Start Test Application
+### Start Demo Application
+
+1. First, install dependencies in the demo directory:
 
 ```bash
-cd test-app
+cd demo
 npm install
-npm run dev
 ```
 
-Then visit `http://localhost:3000` in your browser
+2. Start the frontend server:
+
+```bash
+npm run dev:frontend
+```
+
+3. Open your browser and visit:
+
+```
+http://localhost:3000
+```
+
+### Demo Features
+
+The demo application allows you to:
+- View and manage session IDs
+- Check session activity status
+- Create new sessions and end existing ones
+- Test HTTP request interception with trace state headers
+- Experiment with custom trace state configuration
+
+For more detailed information, see the [demo README](/demo/README.md).
 
 ## 📦 Publishing
 
