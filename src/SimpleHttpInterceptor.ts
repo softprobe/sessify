@@ -1,13 +1,22 @@
 import { getSessionId } from "./SessionManager";
 
+export interface CustomTraceState {
+  [key: string]: string;
+}
+
 /**
- * 简单的HTTP请求拦截器，直接注入tracestate头
+ * Simple HTTP request interceptor that directly injects tracestate headers
  */
 export class SimpleHttpInterceptor {
-  private siteName?: string;
+  private customTraceState?: CustomTraceState;
 
-  constructor(siteName?: string) {
-    this.siteName = siteName;
+  constructor(customTraceState?: CustomTraceState | string) {
+    // Handle both string (backward compatibility) and object formats
+    if (typeof customTraceState === 'string') {
+      this.customTraceState = { 'x-sp-site': customTraceState };
+    } else {
+      this.customTraceState = customTraceState;
+    }
     this.interceptFetch();
   }
 
@@ -15,34 +24,64 @@ export class SimpleHttpInterceptor {
     const originalFetch = window.fetch;
     
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      // 获取sessionId
-      const sessionId = getSessionId();
+      console.log('SimpleHttpInterceptor: Intercepting fetch request to:', input);
+      console.log('SimpleHttpInterceptor: Current customTraceState:', this.customTraceState);
       
-      // 构建tracestate值
+      // Get sessionId
+      const sessionId = getSessionId();
+      console.log('SimpleHttpInterceptor: Current session ID:', sessionId);
+      
+      // Build tracestate value
       const traceStateParts: string[] = [];
       
-      if (this.siteName) {
-        traceStateParts.push(`x-sp-site=${this.siteName}`);
+      // Add custom key-value pairs
+      if (this.customTraceState) {
+        console.log('SimpleHttpInterceptor: Processing customTraceState:', this.customTraceState);
+        Object.entries(this.customTraceState).forEach(([key, value]) => {
+          const traceStatePart = `${key}=${value}`;
+          traceStateParts.push(traceStatePart);
+          console.log('SimpleHttpInterceptor: Added key-value tracestate:', traceStatePart);
+        });
+      } else {
+        console.log('SimpleHttpInterceptor: No customTraceState configured');
       }
       
-      traceStateParts.push(`x-sp-session-id=${sessionId}`);
+      // Always include session ID if available
+      if (sessionId) {
+        traceStateParts.push(`x-sp-session-id=${sessionId}`);
+        console.log('SimpleHttpInterceptor: Added session ID tracestate:', `x-sp-session-id=${sessionId}`);
+      } else {
+        console.log('SimpleHttpInterceptor: No active session ID found');
+      }
       
-      const tracestateValue = traceStateParts.join(',');
-      
-      // 准备请求头
-      const headers = new Headers(init?.headers);
-      headers.set('tracestate', tracestateValue);
-      
-      // 创建新的请求配置
-      const newInit: RequestInit = {
-        ...init,
-        headers: headers
-      };
-      
-      console.log('🔧 SimpleHttpInterceptor: Injected tracestate header:', tracestateValue);
-      
-      // 使用原始的fetch方法
-      return originalFetch(input, newInit);
+      // Only set tracestate header if we have any values
+      if (traceStateParts.length > 0) {
+        const tracestateValue = traceStateParts.join(',');
+        console.log('SimpleHttpInterceptor: Final tracestate value:', tracestateValue);
+        
+        // Prepare request headers
+        const headers = new Headers(init?.headers);
+        headers.set('tracestate', tracestateValue);
+        
+        console.log('SimpleHttpInterceptor: Setting tracestate header on request');
+        console.log('SimpleHttpInterceptor: Request headers before:', init?.headers);
+        console.log('SimpleHttpInterceptor: Request headers after:', headers);
+        
+        // Create new request configuration
+        const newInit: RequestInit = {
+          ...init,
+          headers: headers
+        };
+        
+        console.log('🔧 SimpleHttpInterceptor: Injected tracestate header:', tracestateValue);
+        
+        // Use original fetch method
+        return originalFetch(input, newInit);
+      } else {
+        // No tracestate values to add, use original request
+        console.log('🔧 SimpleHttpInterceptor: No tracestate values to inject');
+        return originalFetch(input, init);
+      }
     };
   }
 }

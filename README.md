@@ -37,9 +37,27 @@ initSessify({
 The `initSessify` function accepts a configuration object with the following properties:
 
 - `siteName` (string, *optional*): The name of your site or application.
+- `customTraceState` (object, *optional*): Custom key-value pairs to include in tracestate headers. If provided, this will be used instead of siteName.
 - `sessionStorageType` ('session' | 'local', *optional*, default: `'session'`):
   - `'session'`: Session ID stored in `sessionStorage`. The session is unique to each browser tab and cleared when the tab is closed.
   - `'local'`: Session ID stored in `localStorage`. The session is shared across all tabs and windows of the same domain and persists after browser closure.
+
+### Using Custom Key-Value Pairs Example
+
+```typescript
+import { initSessify } from "@softprobe/sessify";
+
+// Use custom key-value pairs in tracestate headers
+initSessify({
+  customTraceState: {
+    'x-sp-site': 'my-awesome-app',
+    'x-sp-environment': 'production',
+    'x-sp-version': '1.2.3',
+    'x-sp-user-type': 'premium'
+  },
+  sessionStorageType: 'local',
+});
+```
 
 ### Using Local Storage Example
 

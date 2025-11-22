@@ -1,6 +1,6 @@
 import { SessifyConfig } from "./config";
 import { initSessionManager } from "./SessionManager";
-import { SimpleHttpInterceptor } from "./SimpleHttpInterceptor";
+import { SimpleHttpInterceptor, CustomTraceState } from "./SimpleHttpInterceptor";
 
 export function initBrowserSessify(config: SessifyConfig): void {
   console.log("🚀 Initializing sessify...");
@@ -8,7 +8,17 @@ export function initBrowserSessify(config: SessifyConfig): void {
   initSessionManager(config.sessionStorageType);
 
   // Create a simple HTTP interceptor to inject tracestate headers
-  new SimpleHttpInterceptor(config.siteName || 'default-site');
+  let customTraceState: CustomTraceState | string | undefined;
+  
+  if (config.customTraceState) {
+    // Use custom key-value pairs if provided
+    customTraceState = config.customTraceState;
+  } else if (config.siteName) {
+    // Fallback to siteName for backward compatibility
+    customTraceState = config.siteName;
+  }
+  
+  new SimpleHttpInterceptor(customTraceState);
 
   console.log("🎯 Sessify initialized successfully with SimpleHttpInterceptor");
 }

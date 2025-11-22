@@ -1,6 +1,14 @@
+import { CustomTraceState } from "./SimpleHttpInterceptor";
+
 export type SessifyConfig = {
   // --- Core Authentication ---
   siteName?: string;
+  
+  /**
+   * Custom key-value pairs to include in tracestate headers
+   * If provided, this will be used instead of siteName
+   */
+  customTraceState?: CustomTraceState;
 
   // --- Session Management ---
   sessionStorageType?: 'session' | 'local';

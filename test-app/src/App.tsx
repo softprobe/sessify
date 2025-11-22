@@ -10,6 +10,12 @@ function App() {
   const [sessionActive, setSessionActive] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const [storageType, setStorageType] = useState<StorageType>('session');
+  const [useCustomTraceState, setUseCustomTraceState] = useState(true);
+  const [customTraceState, setCustomTraceState] = useState<Record<string, string>>({
+    'x-sp-site': 'tracestate-test-app',
+    'x-sp-environment': 'development',
+    'x-sp-version': '1.0.0'
+  });
 
   // Initialize sessify library
   useEffect(() => {
@@ -17,10 +23,26 @@ function App() {
     
     // Initialize sessify library
     console.log('Initializing sessify library...');
-    initSessify({
-      siteName: 'tracestate-test-app',
+    console.log('Current configuration:');
+    console.log('- Storage type:', storageType);
+    console.log('- Use custom trace state:', useCustomTraceState);
+    console.log('- Custom trace state:', customTraceState);
+    
+    const config: any = {
       sessionStorageType: storageType
-    });
+    };
+    
+    if (useCustomTraceState) {
+      config.customTraceState = customTraceState;
+      console.log('Using custom trace state configuration');
+    } else {
+      config.siteName = 'tracestate-test-app';
+      console.log('Using siteName fallback configuration');
+    }
+    
+    console.log('Final config passed to initSessify:', config);
+    
+    initSessify(config);
     
     console.log('Sessify library initialization completed');
     
@@ -35,7 +57,7 @@ function App() {
     } else {
       console.log('No active session');
     }
-  }, [storageType]);
+  }, [storageType, useCustomTraceState, customTraceState]);
 
   const handleTestApiCall = async () => {
     setLoading(true);
@@ -43,13 +65,26 @@ function App() {
       // sessify library should automatically inject tracestate headers via SimpleHttpInterceptor
       console.log('Making API call - SimpleHttpInterceptor should automatically inject tracestate header');
       
-      const res = await fetch('http://localhost:3003/api/test');
+      // Use a public test API that echoes back headers
+      const res = await fetch('https://httpbin.org/headers');
       const data = await res.json();
-      setResponse(data);
-      console.log('API Response:', data);
+      
+      // Create a mock response that shows what headers were sent
+      const mockResponse = {
+        success: true,
+        message: 'API call completed - check browser console for tracestate injection logs',
+        headersSent: data.headers,
+        tracestateInjected: 'Check browser console for SimpleHttpInterceptor logs'
+      };
+      
+      setResponse(mockResponse);
+      console.log('API Response:', mockResponse);
     } catch (error) {
       console.error('API call failed:', error);
-      setResponse({ error: 'Failed to fetch data' });
+      setResponse({ 
+        error: 'Failed to fetch data', 
+        suggestion: 'Check browser console for SimpleHttpInterceptor logs to verify tracestate injection'
+      });
     } finally {
       setLoading(false);
     }
@@ -85,66 +120,143 @@ function App() {
     }
   };
 
+  const handleCustomTraceStateToggle = () => {
+    const newValue = !useCustomTraceState;
+    console.log('Toggling custom trace state mode to:', newValue);
+    setUseCustomTraceState(newValue);
+    
+    // If there is an active session, need to reinitialize
+    if (sessionActive) {
+      console.log('Active session detected, ending current session before switching trace state mode');
+      endSession();
+      setSessionActive(false);
+      setCurrentSessionId('');
+    }
+  };
+
+  const handleCustomTraceStateChange = (key: string, value: string) => {
+    setCustomTraceState(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleAddCustomKey = () => {
+    const newKey = `x-sp-custom-${Object.keys(customTraceState).length + 1}`;
+    setCustomTraceState(prev => ({
+      ...prev,
+      [newKey]: 'custom-value'
+    }));
+  };
+
+  const handleRemoveCustomKey = (key: string) => {
+    setCustomTraceState(prev => {
+      const newState = { ...prev };
+      delete newState[key];
+      return newState;
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>TraceState Test Application</h1>
         
-        {/* Storage Level Configuration Section */}
-        <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ffa500', borderRadius: '8px', backgroundColor: '#282c34' }}>
-          <h2>Storage Level Configuration</h2>
-          <div style={{ marginBottom: '15px' }}>
-            <p><strong>Current Storage Type:</strong> 
-              <span style={{ 
-                color: storageType === 'session' ? '#61dafb' : '#ffa500',
-                fontWeight: 'bold',
-                marginLeft: '10px'
-              }}>
-                {storageType === 'session' ? 'Session Storage (Browser Tab Level)' : 'Local Storage (Global Level)'}
-              </span>
-            </p>
-            <p style={{ fontSize: '14px', color: '#ccc', marginTop: '10px' }}>
-              {storageType === 'session' 
-                ? 'Session Storage: Data is valid in the current browser tab, data is lost when the tab is closed' 
-                : 'Local Storage: Data is valid globally in the browser, data is retained after browser is closed'
-              }
-            </p>
+        <div className="config-section">
+          <h3>Storage Configuration</h3>
+          <div className="radio-group">
+            <label>
+              <input
+                type="radio"
+                value="session"
+                checked={storageType === 'session'}
+                onChange={(e) => handleStorageTypeChange(e.target.value as StorageType)}
+              />
+              Session Storage
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="local"
+                checked={storageType === 'local'}
+                onChange={(e) => handleStorageTypeChange(e.target.value as StorageType)}
+              />
+              Local Storage
+            </label>
           </div>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button 
-              onClick={() => handleStorageTypeChange('session')} 
-              className="storage-button"
-              disabled={storageType === 'session'}
-              style={{ 
-                backgroundColor: storageType === 'session' ? '#61dafb' : '#666',
-                color: storageType === 'session' ? '#282c34' : '#999'
-              }}
-            >
-              Use Session Storage
-            </button>
-            <button 
-              onClick={() => handleStorageTypeChange('local')} 
-              className="storage-button"
-              disabled={storageType === 'local'}
-              style={{ 
-                backgroundColor: storageType === 'local' ? '#ffa500' : '#666',
-                color: storageType === 'local' ? '#282c34' : '#999'
-              }}
-            >
-              Use Local Storage
-            </button>
+        </div>
+
+        <div className="config-section">
+          <h3>Trace State Configuration</h3>
+          <div className="checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={useCustomTraceState}
+                onChange={handleCustomTraceStateToggle}
+              />
+              Use Custom Key-Value Pairs
+            </label>
           </div>
+          
+          {useCustomTraceState && (
+            <div className="custom-trace-state">
+              <h4>Custom Trace State Key-Value Pairs</h4>
+              {Object.entries(customTraceState).map(([key, value]) => (
+                <div key={key} className="key-value-pair">
+                  <input
+                    type="text"
+                    value={key}
+                    onChange={(e) => handleCustomTraceStateChange(key, e.target.value)}
+                    placeholder="Key"
+                  />
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => handleCustomTraceStateChange(key, e.target.value)}
+                    placeholder="Value"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveCustomKey(key)}
+                    className="remove-btn"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button 
+                type="button" 
+                onClick={handleAddCustomKey}
+                className="add-btn"
+              >
+                Add Custom Key
+              </button>
+            </div>
+          )}
         </div>
         
         {/* Session Management Section */}
-        <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #61dafb', borderRadius: '8px', backgroundColor: '#282c34' }}>
+        <div className="status-section">
           <h2>Session Management</h2>
-          <div style={{ marginBottom: '15px' }}>
+          <div className="status-content">
             <p><strong>Session Status:</strong> {sessionActive ? 'Active' : 'Inactive'}</p>
             {sessionActive && (
               <p><strong>Current Session ID:</strong> {currentSessionId}</p>
             )}
-            <p style={{ fontSize: '14px', color: '#ccc', marginTop: '10px' }}>
+            <p><strong>Storage Type:</strong> {storageType === 'session' ? 'Session Storage' : 'Local Storage'}</p>
+            <p><strong>Trace State Mode:</strong> {useCustomTraceState ? 'Custom Key-Value Pairs' : 'Simple Site Name'}</p>
+            {useCustomTraceState ? (
+              <div>
+                <p><strong>Custom Trace State:</strong></p>
+                <pre>
+                  {JSON.stringify(customTraceState, null, 2)}
+                </pre>
+              </div>
+            ) : (
+              <p><strong>Site Name:</strong> tracestate-test-app</p>
+            )}
+            <p className="storage-info">
               Session ID will be stored in: <strong>{storageType === 'session' ? 'sessionStorage' : 'localStorage'}</strong>
             </p>
           </div>
