@@ -35,10 +35,7 @@ function App() {
     if (useCustomTraceState) {
       config.customTraceState = customTraceState;
       console.log('Using custom trace state configuration');
-    } else {
-      config.siteName = 'tracestate-test-app';
-      console.log('Using siteName fallback configuration');
-    }
+    } 
     
     console.log('Final config passed to initSessify:', config);
     
