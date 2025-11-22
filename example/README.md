@@ -1,10 +1,10 @@
-# @softprobe/sessify Demo Application
+# @softprobe/sessify Example Application
 
-This directory contains a demo application for testing and demonstrating the functionality of the `@softprobe/sessify` library.
+This directory contains an example application for testing and demonstrating the functionality of the `@softprobe/sessify` library.
 
 ## Overview
 
-The demo application provides a simple interface to test all the core features of `@softprobe/sessify`, including:
+The example application provides a simple interface to test all the core features of `@softprobe/sessify`, including:
 - Session lifecycle management
 - Session ID retrieval
 - Session activation and termination
@@ -20,10 +20,10 @@ The demo application provides a simple interface to test all the core features o
 
 ### Installation
 
-1. Navigate to the demo directory:
+1. Navigate to the example directory:
 
 ```bash
-cd demo
+cd example
 ```
 
 2. Install dependencies:
@@ -32,7 +32,7 @@ cd demo
 npm install
 ```
 
-### Running the Demo
+### Running the Example
 
 ```bash
 npm run dev:frontend
@@ -40,7 +40,7 @@ npm run dev:frontend
 
 This will start the Vite development server on port 3000.
 
-### Access the Demo
+### Access the Example
 
 Open your browser and navigate to:
 
@@ -48,7 +48,7 @@ Open your browser and navigate to:
 http://localhost:3000
 ```
 
-## Demo Features
+## Example Features
 
 ### Session Management
 
@@ -63,12 +63,12 @@ You can test the custom trace state functionality by modifying the configuration
 
 ### HTTP Interception
 
-The demo includes functionality to demonstrate how session information is automatically injected into the `tracestate` header of HTTP requests.
+The example includes functionality to demonstrate how session information is automatically injected into the `tracestate` header of HTTP requests.
 
 ## Project Structure
 
 ```
-demo/
+example/
 ├── src/              # Frontend source code
 │   ├── App.tsx       # Main application component
 │   ├── main.tsx      # Application entry point

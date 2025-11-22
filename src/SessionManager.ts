@@ -30,7 +30,20 @@ function isSessionExpired(): boolean {
 function generateNewSessionId(): string {
   // Generate shorter unique ID using timestamp + random combination
   const timestamp = Date.now().toString(36); // Timestamp in base36
-  const randomPart = Math.random().toString(36).substring(2, 10); // 8 random characters
+  
+  // Use Web Crypto API for cryptographically secure random values
+  const array = new Uint8Array(4); // 4 bytes for 8 hex characters
+  const crypto = typeof window !== "undefined" ? window.crypto : typeof global !== "undefined" ? global.crypto : null;
+  
+  let randomPart: string;
+  if (crypto && crypto.getRandomValues) {
+    // Use Web Crypto API for better randomness
+    crypto.getRandomValues(array);
+    randomPart = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').substring(0, 8);
+  } else {
+    // Fallback to Math.random if Web Crypto API is not available
+    randomPart = Math.random().toString(36).substring(2, 10); // 8 random characters
+  }
   
   // Combine into 16-character unique ID
   return timestamp + randomPart;
