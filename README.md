@@ -42,27 +42,27 @@ pnpm add @softprobe/sessify
 ```javascript
 import { initSessify, getSessionId, startSession, endSession, isSessionActive } from '@softprobe/sessify';
 
-// 初始化库
+// Initialize the library
 initSessify({});
 
-// 或使用最少配置
+// Or with minimal configuration
 initSessify({
-  // 所有配置项都是可选的
+  // All configuration options are optional
 });
 
-// 获取当前会话ID
+// Get current session ID
 const sessionId = getSessionId();
 console.log('Current session ID:', sessionId);
 
-// 检查会话是否活跃
+// Check if session is active
 const active = isSessionActive();
 console.log('Session active:', active);
 
-// 强制开始新会话
+// Force start a new session
 const newSessionId = startSession();
 console.log('New session started:', newSessionId);
 
-// 结束当前会话
+// End current session
 endSession();
 ```
 
@@ -71,7 +71,7 @@ endSession();
 ```javascript
 import { initSessify } from '@softprobe/sessify';
 
-// 使用自定义键值对
+// Use custom key-value pairs
 initSessify({
   customTraceState: {
     'x-sp-site': 'my-awesome-app',
@@ -79,7 +79,7 @@ initSessify({
     'x-sp-version': '1.0.0',
     'x-sp-custom-data': 'custom-value'
   },
-  sessionStorageType: 'local' // 使用localStorage持久化会话
+  sessionStorageType: 'local' // Use localStorage for persistent session
 });
 ```
 
@@ -89,13 +89,13 @@ initSessify({
 
 #### `initSessify(config: SessifyConfig): void`
 
-初始化会话管理库。这是使用库的第一步，必须先调用此函数来配置会话管理行为。
+Initializes the session management library. This is the first step to use the library; you must call this function first to configure session management behavior.
 
-**参数：**
-- `config`: 配置对象，包含以下可选属性：
-  - `sessionStorageType?: 'session' | 'local'`: 会话存储类型，默认为 'session'
-  - `siteName?: string`: 站点名称，将作为 tracestate 的一部分
-  - `customTraceState?: Record<string, string>`: 自定义键值对，将作为 tracestate 的一部分
+**Parameters:**
+- `config`: Configuration object with the following optional properties:
+  - `sessionStorageType?: 'session' | 'local'`: Session storage type, defaults to 'session'
+  - `siteName?: string`: Site name, will be part of tracestate
+  - `customTraceState?: Record<string, string>`: Custom key-value pairs, will be part of tracestate
 
 #### `getSessionId(): string`
 
@@ -208,16 +208,16 @@ npm test
 ### Code Quality Checks
 
 ```bash
-# 运行 ESLint 检查
+# Run ESLint check
 npm run lint
 
-# 自动修复 ESLint 问题
+# Automatically fix ESLint issues
 npm run lint:fix
 
-# 格式化代码
+# Format code
 npm run format
 
-# 检查代码格式
+# Check code format
 npm run format:check
 ```
 
