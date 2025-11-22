@@ -13,9 +13,6 @@ export function initBrowserSessify(config: SessifyConfig): void {
   if (config.customTraceState) {
     // Use custom key-value pairs if provided
     customTraceState = config.customTraceState;
-  } else if (config.siteName) {
-    // Fallback to siteName for backward compatibility
-    customTraceState = config.siteName;
   }
   
   new SimpleHttpInterceptor(customTraceState);

@@ -1,6 +1,4 @@
 const SESSION_ID_KEY = "x-sp-session-id";
-const SESSION_LAST_ACTIVITY_KEY = "x-sp-session-last-activity";
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 let storage: Storage = sessionStorage;
 
@@ -11,20 +9,6 @@ let storage: Storage = sessionStorage;
 export function initSessionManager(storageType: 'session' | 'local' = 'session'): void {
   if (typeof window === "undefined") return;
   storage = storageType === 'local' ? localStorage : sessionStorage;
-}
-
-function updateLastActivity(): void {
-  if (typeof window === "undefined") return;
-  storage.setItem(SESSION_LAST_ACTIVITY_KEY, Date.now().toString());
-}
-
-function isSessionExpired(): boolean {
-  if (typeof window === "undefined") return true;
-  const lastActivity = storage.getItem(SESSION_LAST_ACTIVITY_KEY);
-  if (!lastActivity) {
-    return false; // No activity yet, so not expired
-  }
-  return Date.now() - parseInt(lastActivity, 10) > SESSION_TIMEOUT;
 }
 
 function generateNewSessionId(): string {
@@ -50,7 +34,7 @@ function generateNewSessionId(): string {
 }
 
 /**
- * Gets the current session ID. If the session is expired or doesn't exist,
+ * Gets the current session ID. If no session exists,
  * a new one is created.
  * @returns The session ID.
  */
@@ -58,11 +42,10 @@ export function getSessionId(): string {
   if (typeof window === "undefined") return "";
 
   let sessionId = storage.getItem(SESSION_ID_KEY);
-  if (!sessionId || isSessionExpired()) {
+  if (!sessionId) {
     sessionId = generateNewSessionId();
     storage.setItem(SESSION_ID_KEY, sessionId);
   }
-  updateLastActivity();
   return sessionId;
 }
 
@@ -74,7 +57,6 @@ export function startSession(): string {
   if (typeof window === "undefined") return "";
   const newSessionId = generateNewSessionId();
   storage.setItem(SESSION_ID_KEY, newSessionId);
-  updateLastActivity();
   return newSessionId;
 }
 
@@ -84,7 +66,6 @@ export function startSession(): string {
 export function endSession(): void {
   if (typeof window === "undefined") return;
   storage.removeItem(SESSION_ID_KEY);
-  storage.removeItem(SESSION_LAST_ACTIVITY_KEY);
 }
 
 /**
@@ -94,5 +75,5 @@ export function endSession(): void {
 export function isSessionActive(): boolean {
   if (typeof window === "undefined") return false;
   const sessionId = storage.getItem(SESSION_ID_KEY);
-  return !!sessionId && !isSessionExpired();
+  return !!sessionId;
 }

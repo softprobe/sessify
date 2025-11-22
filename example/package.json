@@ -4,9 +4,7 @@
   "description": "Test application for tracestate propagation",
   "type": "module",
   "scripts": {
-    "dev:frontend": "vite",
-    "dev:backend": "node backend/server.js",
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev": "vite",
     "build": "tsc && vite build"
   },
   "dependencies": {

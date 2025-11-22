@@ -1,279 +1,194 @@
+
 # @softprobe/sessify
 
-A lightweight library with powerful session lifecycle management for web applications, with built-in HTTP request tracestate header injection.
+<div align="left">
+  <a href="https://www.npmjs.com/package/@softprobe/sessify">
+    <img src="https://img.shields.io/npm/v/@softprobe/sessify?style=flat-square&color=blue" alt="npm version" />
+  </a>
+  <a href="https://www.npmjs.com/package/@softprobe/sessify">
+    <img src="https://img.shields.io/npm/l/@softprobe/sessify?style=flat-square" alt="license" />
+  </a>
+  <img src="https://img.shields.io/badge/dependencies-0-success?style=flat-square" alt="zero dependencies" />
+  <img src="https://img.shields.io/badge/size-lightweight-green?style=flat-square" alt="lightweight" />
+</div>
 
-## 📋 Project Introduction
+<br />
 
-@softprobe/sessify is a lightweight library with its core strength in powerful session lifecycle management capabilities. It automatically creates, maintains, expires, and manages user sessions while providing flexible storage options and custom request header information injection functionality, making session management in web applications simple and efficient.
+**A lightweight, zero-dependency library for robust session lifecycle management and W3C-compliant distributed tracing.**
 
-### Key Features
+`@softprobe/sessify` simplifies session handling in web applications by automatically managing creation and validation. It seamlessly integrates with your network requests by injecting `tracestate` headers, bridging the gap between frontend sessions and backend observability.
 
-- 🚀 **Powerful Session Lifecycle Management** - Automatically creates, maintains, expires, and manages user sessions, supporting session creation, validation, update, and destruction
-- 💾 **Flexible Storage Options** - Supports sessionStorage (session-level) and localStorage (persistent) for storing session information
-- 🎯 **Custom Request Information** - Supports custom key-value pairs as part of tracestate to enhance request tracking capabilities
-- 🔍 **HTTP Request Interception** - Automatically intercepts fetch requests and injects session information into tracestate headers
-- 📱 **Smart Environment Detection** - Automatically detects the runtime environment and skips execution in non-browser environments
-- 🔒 **Zero Dependencies** - Does not rely on any external libraries, keeping the package size small
+## ✨ Key Features
 
-## 🚀 Installation
+- **🔄 Automated Lifecycle Management**
+  Complete handling of session creation, validation, keep-alive, and expiration logic. No manual timer management required.
 
-Install with npm:
+- **🔌 W3C Trace Context Injection**
+  Automatically intercepts `fetch` requests to inject standard `tracestate` headers, carrying session context across microservices.
+
+- **💾 Flexible Persistence Strategy**
+  Choose between ephemeral `sessionStorage` or persistent `localStorage` based on your security and UX requirements.
+
+- **🛡️ Enhanced Security**
+  Generates collision-resistant session IDs using the Web Crypto API (Timestamp + Cryptographically Secure Random String).
+
+- **🖥️ SSR & Environment Ready**
+  Built-in environment detection ensures safe execution in browser environments while gracefully skipping Server-Side Rendering (SSR) contexts.
+
+- **📦 Zero Dependencies**
+  Keep your bundle size minimal. No external bloat.
+
+---
+
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
+# npm
 npm install @softprobe/sessify
-```
 
-Install with yarn:
-
-```bash
+# yarn
 yarn add @softprobe/sessify
-```
 
-Install with pnpm:
-
-```bash
+# pnpm
 pnpm add @softprobe/sessify
 ```
 
-## 💻 Usage
+### Initialize at Your App Entry Point
 
-### Basic Usage
+Initialize sessify at the earliest entry point of your application (e.g., App.tsx, main.js, or layout.tsx).
 
-```javascript
-import { initSessify, getSessionId, startSession, endSession, isSessionActive } from '@softprobe/sessify';
+#### React / Next.js Example
 
-// Initialize the library
-initSessify({});
+```tsx
+// app/layout.tsx
+'use client'
+import { useEffect } from 'react';
+import { initSessify } from '@softprobe/sessify';
 
-// Or with minimal configuration
-initSessify({
-  // All configuration options are optional
-});
+export default function RootLayout({ children }) {
+  useEffect(() => {
+    // Initialize with default settings
+    initSessify({
+      sessionStorageType: 'session' 
+    });
+  }, []);
 
-// Get current session ID
-const sessionId = getSessionId();
-console.log('Current session ID:', sessionId);
-
-// Check if session is active
-const active = isSessionActive();
-console.log('Session active:', active);
-
-// Force start a new session
-const newSessionId = startSession();
-console.log('New session started:', newSessionId);
-
-// End current session
-endSession();
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
 ```
 
-### Using Custom Trace State
+#### Vanilla JS Example
 
 ```javascript
 import { initSessify } from '@softprobe/sessify';
 
-// Use custom key-value pairs
 initSessify({
-  customTraceState: {
-    'x-sp-site': 'my-awesome-app',
-    'x-sp-environment': 'production',
-    'x-sp-version': '1.0.0',
-    'x-sp-custom-data': 'custom-value'
-  },
-  sessionStorageType: 'local' // Use localStorage for persistent session
+  enableTrace: true
 });
 ```
 
-## 📚 API Documentation
+## 💻 Core Usage
 
-### Session Lifecycle Management Core Functions
+Once initialized, you can manage sessions anywhere in your application.
 
-#### `initSessify(config: SessifyConfig): void`
+```javascript
+import { getSessionId, startSession, endSession, isSessionActive } from '@softprobe/sessify';
 
-Initializes the session management library. This is the first step to use the library; you must call this function first to configure session management behavior.
+// 1. Get Current Session
+// If expired or missing, this automatically creates a new one.
+const sessionId = getSessionId();
+console.log('Active Session:', sessionId);
 
-**Parameters:**
-- `config`: Configuration object with the following optional properties:
-  - `sessionStorageType?: 'session' | 'local'`: Session storage type, defaults to 'session'
-  - `siteName?: string`: Site name, will be part of tracestate
-  - `customTraceState?: Record<string, string>`: Custom key-value pairs, will be part of tracestate
-
-#### `getSessionId(): string`
-
-**[Lifecycle Core]** Gets the current session ID. If the session does not exist or has expired, it will automatically create a new session; if the session exists but is nearing expiration, it will update the session activity time.
-
-**Returns:** The current valid session ID string
-
-#### `startSession(): string`
-
-**[Lifecycle Core]** Forces the start of a new session, immediately invalidating the current session and creating a brand new one.
-
-**Returns:** The newly created session ID string
-
-#### `endSession(): void`
-
-**[Lifecycle Core]** Ends the current session, completely clearing the session storage and immediately invalidating the session.
-
-#### `isSessionActive(): boolean`
-
-**[Lifecycle Core]** Checks if there is an active and unexpired session.
-
-**Returns:** Returns true if the session is active; otherwise returns false
-
-### Configuration Options
-
-```typescript
-interface SessifyConfig {
-  // Site name
-  siteName?: string;
-  
-  // Custom key-value pairs, will override siteName
-  customTraceState?: Record<string, string>;
-
-  // Session storage type
-  sessionStorageType?: 'session' | 'local';
-
-  // Enable trace data reporting
-  enableTrace?: boolean;
-
-  // Custom data reporting endpoint
-  endpoint?: string;
-
-  // Enable console logging
-  enableConsole?: boolean;
-
-  // Auto-detection configuration
-  instrumentations?: {
-    // Monitor network requests
-    network?: boolean;
-    // Monitor user interaction events
-    interaction?: boolean;
-    // Record page environment information
-    environment?: boolean;
-  };
-
-  // Enable scroll monitoring
-  observeScroll?: boolean;
+// 2. Check Status
+if (isSessionActive()) {
+  console.log('User is currently active');
 }
+
+// 3. Force Refresh (e.g., on Login)
+// Invalidates the old session and starts a fresh one immediately.
+const newSessionId = startSession();
+
+// 4. Logout / Cleanup
+// Clears storage and invalidates the session.
+endSession();
 ```
+
+## ⚙️ Configuration
+
+The initSessify function accepts a configuration object to tailor behavior to your needs.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| customTraceState | Record<string, string> | {} | Custom key-value pairs to include in tracestate headers.  |
+| sessionStorageType | 'session' \| 'local' | 'session' | Controls persistence. 'local' survives browser restarts; 'session' clears when the tab closes. |
+
+### Custom Trace State Example
+
+Enhance your request tracing by adding context like environment or version:
+
+```javascript
+initSessify({
+  sessionStorageType: 'local',
+  customTraceState: {
+    'x-sp-env': 'production',
+    'x-sp-ver': '1.0.0',
+    'x-sp-tier': 'premium'
+  }
+});
+```
+
+Resulting Header: tracestate: x-sp-session-id=...,x-sp-env=production,x-sp-ver=1.0.0...
 
 ## 🔧 Technical Details
 
-### Session Lifecycle Management
+### Session Lifecycle Strategy
 
-- **Complete Lifecycle Support**: Automatically handles the entire process of session creation, validation, update, and destruction
-- **Intelligent Session Expiration Mechanism**: Automatically expires after 30 minutes of inactivity to ensure security
-- **Unique Session Identifier**: Uses timestamp (base36) + cryptographically secure random string generated by Web Crypto API to create a unique session ID of approximately 16 characters, providing enhanced security and reduced collision probability
-- **Session Activity Tracking**: Automatically updates the last activity time each time the session is accessed
-- **Session Validation**: Automatically checks validity when getting the session ID, and automatically creates a new session when invalid or expired
-- **Flexible Storage Options**: Supports sessionStorage (session-level) and localStorage (persistent) for storing session information
+- **Creation**: Uses a base36 timestamp combined with a Web Crypto API random string for a ~16 character unique ID.
+- **Expiration**: Defaults to a 30-minute sliding window. Every valid getSessionId() call or intercepted request updates the last active timestamp, keeping the session alive.
+- **Validation**: Automatically checks for timeout on every access. If the timeout is exceeded, the old session is discarded and a new one is seamlessly generated.
 
 ### HTTP Interception
 
-- Automatically intercepts the browser's `fetch` API
-- Injects the `tracestate` field into request headers in the format `key1=value1,key2=value2,...`
-- Automatically includes the session ID in the format `x-sp-session-id=session_id`
+@softprobe/sessify monkey-patches the global fetch API (safely) to:
+- Check if a session is active.
+- Inject the tracestate header conforming to W3C standards.
+- Append your customTraceState and the current session_id.
 
-### Environment Detection
+## 🛠️ Development
 
-- Automatically detects the runtime environment and skips execution in non-browser environments (e.g., server-side rendering)
-- Determines the runtime environment by checking if the `window` object exists
-
-## 🛠️ Development Guide
-
-### Clone Repository
+Interested in contributing or modifying the source?
 
 ```bash
+# Clone
 git clone https://github.com/softprobe/web-inspector.git
 cd web-inspector
-```
 
-### Install Dependencies
-
-```bash
+# Install & Build
 npm install
-```
-
-### Build Project
-
-```bash
 npm run build
-```
 
-### Run Tests
-
-```bash
+# Test & Lint
 npm test
-```
-
-### Code Quality Checks
-
-```bash
-# Run ESLint check
 npm run lint
-
-# Automatically fix ESLint issues
-npm run lint:fix
-
-# Format code
-npm run format
-
-# Check code format
-npm run format:check
 ```
 
-## 🧪 Example Application
+### Run the Example App
 
-The project includes an example application located in the `example` directory, which can be used to test and demonstrate all the library's functionality. The example provides a user-friendly interface to interact with session management features.
-
-### Start Example Application
-
-1. First, install dependencies in the example directory:
+We include a full playground in the example folder to test headers and session behavior visually.
 
 ```bash
 cd example
 npm install
-```
-
-2. Start the frontend server:
-
-```bash
 npm run dev:frontend
+# Visit http://localhost:3000
 ```
 
-3. Open your browser and visit:
+## 📄 License
 
-```
-http://localhost:3000
-```
-
-### Example Features
-
-The example application allows you to:
-- View and manage session IDs
-- Check session activity status
-- Create new sessions and end existing ones
-- Test HTTP request interception with trace state headers
-- Experiment with custom trace state configuration
-
-For more detailed information, see the [example README](/example/README.md).
-
-## 📦 Publishing
-
-### Version Update
-
-1. Update the version number in `package.json`
-2. Run the build command: `npm run build`
-3. Publish to npm: `npm publish`
-
-## 📝 License
-
-MIT License © 2024 Softprobe
-
-## 🤝 Contribution
-
-Contributions via Issues and Pull Requests are welcome!
-
-## 👥 Authors
-
-[Softprobe](https://github.com/softprobe)
-
+MIT License © 2024 Softprobe.
