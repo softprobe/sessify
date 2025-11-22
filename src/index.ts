@@ -1,14 +1,14 @@
-import { initBrowserInspector } from "./browser";
-import { InspectorConfig } from "./config";
+import { initBrowserSessify } from "./browser";
+import { SessifyConfig } from "./config";
+import { getSessionId, startSession, endSession, isSessionActive } from "./SessionManager";
 
-export function initInspector(config: InspectorConfig): void {
+// First define functions
+function initSessify(config: SessifyConfig): void {
   try {
-    // <--- 在入口函数增加 try/catch
-    initBrowserInspector(config);
+    initBrowserSessify(config);
   } catch (error) {
-    // 这个 catch 只有在 initBrowserInspector 本身加载失败或存在致命的语法错误时才可能被触发
-    console.error("❌ A critical error occurred in the inspector entry point:", error);
+    console.error("❌ A critical error occurred in the sessify entry point:", error);
   }
 }
-
-export { trace } from "@opentelemetry/api";
+// Then export all functionality
+export { initSessify, getSessionId, startSession, endSession, isSessionActive };
