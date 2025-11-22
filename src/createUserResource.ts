@@ -2,11 +2,11 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions";
 
 type Options = {
-  siteName: string;
+  siteName?: string;
   sessionId: string;
 };
 
-export function createUserResource({ siteName, sessionId }: Options) {
+export function createUserResource({ siteName = "unknown-site", sessionId }: Options) {
   const resourceAttributes: { [key: string]: any } = {
     "user.session_id": sessionId,
 

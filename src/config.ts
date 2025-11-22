@@ -1,6 +1,6 @@
 export type SessifyConfig = {
   // --- Core Authentication ---
-  siteName: string;
+  siteName?: string;
 
   // --- Session Management ---
   sessionStorageType?: 'session' | 'local';

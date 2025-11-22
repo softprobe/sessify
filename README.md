@@ -23,16 +23,20 @@ At your application entry point, import `initSessify` and call it with your conf
 ```typescript
 import { initSessify } from "@softprobe/sessify";
 
+// With siteName (recommended)
 initSessify({
   siteName: "my-awesome-app",
 });
+
+// Or without siteName
+// initSessify({});
 ```
 
 ## Configuration Options
 
 The `initSessify` function accepts a configuration object with the following properties:
 
-- `siteName` (string, **required**): The name of your site or application.
+- `siteName` (string, *optional*): The name of your site or application.
 - `sessionStorageType` ('session' | 'local', *optional*, default: `'session'`):
   - `'session'`: Session ID stored in `sessionStorage`. The session is unique to each browser tab and cleared when the tab is closed.
   - `'local'`: Session ID stored in `localStorage`. The session is shared across all tabs and windows of the same domain and persists after browser closure.
@@ -44,7 +48,7 @@ import { initSessify } from "@softprobe/sessify";
 
 // Session will be shared across all tabs
 initSessify({
-  siteName: "my-awesome-app",
+  siteName: "my-awesome-app", // Optional
   sessionStorageType: 'local',
 });
 ```
@@ -89,16 +93,18 @@ import { useEffect } from 'react';
 import { initSessify } from '@softprobe/sessify';
 
 export const InspectorInitializer = () => {
-  useEffect(() => {
-    initSessify({
-      siteName: "my-nextjs-app",
-      sessionStorageType: 'local', // 'local' is recommended to maintain consistent sessions between page navigations
-    });
+    useEffect(() => {
+      initSessify({
+        siteName: "my-nextjs-app", // Optional
+        sessionStorageType: 'local', // 'local' is recommended to maintain consistent sessions between page navigations
+      });
   }, []);
 
   return null;
 }
+```
 
+```typescript
 // app/layout.tsx
 import { InspectorInitializer } from '@/components/InspectorInitializer';
 

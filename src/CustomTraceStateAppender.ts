@@ -12,9 +12,9 @@ import { getSessionId } from "./SessionManager";
  * A custom propagator that injects session and site information into the W3C tracestate header.
  */
 export class CustomTraceStateAppender implements TextMapPropagator {
-  private siteName: string;
+  private siteName?: string;
 
-  constructor(siteName: string) {
+  constructor(siteName?: string) {
     this.siteName = siteName;
   }
 
@@ -26,10 +26,14 @@ export class CustomTraceStateAppender implements TextMapPropagator {
 
     const sessionId = getSessionId();
     const originalTraceState = spanContext.traceState ?? new TraceState();
+    let newTraceState = originalTraceState;
     
-    const newTraceState = originalTraceState
-      .set("sp_site", this.siteName)
-      .set("sp_session", sessionId);
+    // 只有当siteName存在时才设置sp_site
+    if (this.siteName) {
+      newTraceState = newTraceState.set("sp_site", this.siteName);
+    }
+    
+    newTraceState = newTraceState.set("sp_session", sessionId);
 
     const serializedTraceState = newTraceState.serialize();
 

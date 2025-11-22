@@ -16,7 +16,7 @@ export function initBrowserSessify(config: SessifyConfig): void {
   initSessionManager(config.sessionStorageType);
 
   const resource = createUserResource({
-    siteName: config.siteName,
+    siteName: config.siteName || 'default-site',
     sessionId: getSessionId(), // Initial session ID for resource
   });
 
@@ -30,7 +30,7 @@ export function initBrowserSessify(config: SessifyConfig): void {
       propagators: [
         new W3CBaggagePropagator(),
         new W3CTraceContextPropagator(),
-        new CustomTraceStateAppender(config.siteName),
+        new CustomTraceStateAppender(config.siteName || 'default-site'),
       ],
     }),
   });
