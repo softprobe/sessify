@@ -14,17 +14,17 @@ module.exports = {
     "plugin:prettier/recommended",
   ],
   rules: {
-    // TypeScript 规则
+    // TypeScript Rules
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-floating-promises": "error",
 
-    // ESLint 基础规则
+    // ESLint Base Rules
     "no-console": "warn",
     eqeqeq: ["error", "always"],
 
-    // Prettier 集成 (通过 plugin:prettier/recommended 已处理)
+    // Prettier Integration (handled via plugin:prettier/recommended)
   },
   ignorePatterns: ["dist/**", "node_modules/**"],
 };

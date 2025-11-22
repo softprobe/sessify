@@ -1,51 +1,73 @@
+const SESSION_ID_KEY = "x-sp-session-id";
+const SESSION_LAST_ACTIVITY_KEY = "x-sp-session-last-activity";
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
+let storage: Storage = sessionStorage;
+
 /**
- * SessionId 管理器
- * 统一管理sessionId的生成和获取
+ * Initializes the session manager with the specified storage type.
+ * @param storageType - The type of storage to use ('session' or 'local').
  */
-
-// 生成UUID函数
-function generateUUID(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c == "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+export function initSessionManager(storageType: 'session' | 'local' = 'session'): void {
+  if (typeof window === "undefined") return;
+  storage = storageType === 'local' ? localStorage : sessionStorage;
 }
 
-// 生成sessionId
-function generateSessionId(): string {
-  const uuid = generateUUID();
-  return `sp-session-${uuid}`;
+function updateLastActivity(): void {
+  if (typeof window === "undefined") return;
+  storage.setItem(SESSION_LAST_ACTIVITY_KEY, Date.now().toString());
 }
 
-// 获取sessionId（从sessionStorage或生成新的）
+function isSessionExpired(): boolean {
+  if (typeof window === "undefined") return true;
+  const lastActivity = storage.getItem(SESSION_LAST_ACTIVITY_KEY);
+  if (!lastActivity) {
+    return false; // No activity yet, so not expired
+  }
+  return Date.now() - parseInt(lastActivity, 10) > SESSION_TIMEOUT;
+}
+
+function generateNewSessionId(): string {
+  return (
+    Date.now().toString(36) +
+    Math.random().toString(36).substring(2, 12)
+  );
+}
+
+/**
+ * Gets the current session ID. If the session is expired or doesn't exist,
+ * a new one is created.
+ * @returns The session ID.
+ */
 export function getSessionId(): string {
   if (typeof window === "undefined") return "";
 
-  let sessionId = sessionStorage.getItem("x-sp-session-id");
-  if (!sessionId) {
-    sessionId = generateSessionId();
-    sessionStorage.setItem("x-sp-session-id", sessionId);
-    console.log("Generated new sessionId:", sessionId);
-  } else {
-    console.log("Using existing sessionId:", sessionId);
+  let sessionId = storage.getItem(SESSION_ID_KEY);
+  if (!sessionId || isSessionExpired()) {
+    sessionId = generateNewSessionId();
+    storage.setItem(SESSION_ID_KEY, sessionId);
   }
+  updateLastActivity();
   return sessionId;
 }
 
-// 重置sessionId（清除当前的并生成新的）
-export function resetSessionId(): string {
+/**
+ * Force starts a new session, invalidating the old one.
+ * @returns The new session ID.
+ */
+export function startSession(): string {
   if (typeof window === "undefined") return "";
-
-  sessionStorage.removeItem("x-sp-session-id");
-  const newSessionId = generateSessionId();
-  sessionStorage.setItem("x-sp-session-id", newSessionId);
-  console.log("Reset sessionId:", newSessionId);
+  const newSessionId = generateNewSessionId();
+  storage.setItem(SESSION_ID_KEY, newSessionId);
+  updateLastActivity();
   return newSessionId;
 }
 
-// 获取当前sessionId（不生成新的）
-export function getCurrentSessionId(): string | null {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem("x-sp-session-id");
+/**
+ * Ends the current session.
+ */
+export function endSession(): void {
+  if (typeof window === "undefined") return;
+  storage.removeItem(SESSION_ID_KEY);
+  storage.removeItem(SESSION_LAST_ACTIVITY_KEY);
 }

@@ -1,47 +1,51 @@
-export type InspectorConfig = {
-  // --- 核心身份认证 ---
-  publicKey: string;
-  serviceName: string;
+export type SessifyConfig = {
+  // --- Core Authentication ---
+  siteName: string;
 
-  // --- 数据导出配置 ---
+  // --- Session Management ---
+  sessionStorageType?: 'session' | 'local';
+
+  // --- Core Configuration ---
+
+  // --- Data Export Configuration ---
   /**
-   * 是否启用数据上报到 Softprobe 后端。
+   * Whether to enable data reporting to Softprobe backend.
    * @default true
    */
   enableTrace?: boolean;
 
   /**
-   * 自定义数据上报地址, 用于覆盖默认的生产环境地址 ('https://o.softprobe.ai')。
+   * Custom data reporting endpoint, used to override the default production address ('https://o.softprobe.ai').
    */
   endpoint?: string;
 
   /**
-   * 是否在浏览器控制台打印追踪信息。
-   * 建议仅在开发和调试时开启。
+   * Whether to print tracking information to browser console.
+   * Recommended to enable only during development and debugging.
    * @default false
    */
   enableConsole?: boolean;
 
-  // --- 自动检测配置 ---
+  // --- Auto-detection Configuration ---
   instrumentations?: {
     /**
-     * 是否监听网络请求 (Fetch and XHR)。
+     * Whether to monitor network requests (Fetch and XHR).
      * @default true
      */
     network?: boolean;
     /**
-     * 是否监听用户交互事件。
+     * Whether to monitor user interaction events.
      * @default false
      */
     interaction?: boolean;
     /**
-     * 是否记录页面环境和加载信息。
+     * Whether to record page environment and loading information.
      * @default false
      */
     environment?: boolean;
   };
 
-  // --- 其他配置 ---
-  /** 是否开启滚动监听, 默认不开启 */
+  // --- Other Configuration ---
+  /** Whether to enable scroll monitoring, disabled by default */
   observeScroll?: boolean;
 };

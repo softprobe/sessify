@@ -2,50 +2,66 @@
 
 [Back to README](../README.md)
 
-## Configuration Options
+## Installation
 
-The `initInspector` function accepts a configuration object with the following options:
+```bash
+npm install sessify
+```
 
-| Option                         | Type      | Required | Default                    | Description                                         |
-| :----------------------------- | :-------- | :------- | :------------------------- | :-------------------------------------------------- |
-| `publicKey`                    | `string`  | Yes      | -                          | Your project's public key.                          |
-| `serviceName`                  | `string`  | Yes      | -                          | Your service or business line name.                 |
-| `enableTrace`                  | `boolean` | No       | `true`                     | Whether to enable trace reporting.                  |
-| `endpoint`                     | `string`  | No       | `'https://o.softprobe.ai'` | Custom endpoint to override the default.            |
-| `enableConsole`                | `boolean` | No       | `false`                    | Whether to print trace info to the browser console. |
-| `instrumentations`             | `object`  | No       | -                          | Configure which features to auto-instrument.        |
-| `instrumentations.network`     | `boolean` | No       | `true`                     | Enable network request instrumentation.             |
-| `instrumentations.interaction` | `boolean` | No       | `false`                    | Enable user interaction instrumentation.            |
-| `instrumentations.environment` | `boolean` | No       | `false`                    | Enable page load and environment information.       |
-
-**Note**: The `initInspector` function is a "fire-and-forget" function. It does not return a `Promise`, and all internal errors are automatically caught to avoid impacting your main application.
-
-## Manual Span Creation (Example)
-
-You can manually create spans to trace specific business logic.
+## Import
 
 ```typescript
-// pages/index.tsx
-import { trace } from '@softprobe/web-inspector';
-
-export default function Home() {
-  const handleClick = () => {
-    const tracer = trace.getTracer('nextjs-tracer');
-    const span = tracer.startSpan('checkout_process');
-    try {
-      // Business logic...
-      span.setAttribute('item_count', 3);
-      span.setStatus({ code: trace.SpanStatusCode.OK });
-    } catch (error) {
-      span.setStatus({
-        code: trace.SpanStatusCode.ERROR,
-        message: error.message
-      });
-    } finally {
-      span.end();
-    }
-  };
-
-  return <button onClick={handleClick}>Start Checkout</button>;
-}
+import { initSessify, startSession, endSession } from '@softprobe/sessify';
 ```
+
+## Configuration Options
+
+`initSessify` accepts the following configuration:
+
+| Option               | Type                        | Required | Default   | Description                                                        |
+| :------------------- | :-------------------------- | :------- | :-------- | :----------------------------------------------------------------- |
+| `siteName`           | `string`                    | Yes      | -         | Logical service/site name, written to resource and tracestate.     |
+| `sessionStorageType` | `'session' \| 'local'`      | No       | `session` | Choose where the session ID is stored.                              |
+| `observeScroll`      | `boolean`                   | No       | -         | Reserved for scroll recording control (not active in this version). |
+| `enableTrace`        | `boolean`                   | No       | -         | Reserved for trace exporting (not active in this version).          |
+| `endpoint`           | `string`                    | No       | -         | Reserved for exporter endpoint (not active in this version).        |
+| `enableConsole`      | `boolean`                   | No       | -         | Reserved for console exporter (not active in this version).         |
+| `instrumentations`   | `{ network?; interaction?; environment? }` | No | - | Reserved for auto-instrumentations (not active in this version).    |
+
+Type definition location: `src/config.ts:1–49`.
+
+## Functions
+
+- `initSessify(config: SessifyConfig): void`
+  - Initializes the web tracer provider and registers context/propagators.
+  - Entry: `src/index.ts:4–10`; Browser init: `src/browser.ts:13–39`.
+
+- `startSession(): string`
+  - Forces a new session ID and updates last activity timestamp.
+  - `src/SessionManager.ts:58–64`.
+
+- `endSession(): void`
+  - Clears current session ID and activity markers.
+  - `src/SessionManager.ts:69–73`.
+
+## Usage Example
+
+```typescript
+import { initSessify, startSession, endSession } from '@softprobe/sessify';
+
+initSessify({
+  siteName: 'YOUR_SITE_NAME',
+  sessionStorageType: 'session',
+});
+
+// Start a new session explicitly (optional)
+const newSessionId = startSession();
+
+// End current session (optional)
+endSession();
+```
+
+## Notes
+
+- This library initializes OpenTelemetry context management and tracestate propagation in the browser. Exporters and auto-instrumentations are intentionally not activated in this version.
+- It is safe to call `initSessify` at application startup; errors are caught to avoid impacting your app.

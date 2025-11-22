@@ -2,17 +2,15 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions";
 
 type Options = {
-  publicKey: string;
-  serviceName: string;
+  siteName: string;
   sessionId: string;
 };
 
-export function createUserResource({ publicKey, serviceName, sessionId }: Options) {
-  const resourceAttributes = {
+export function createUserResource({ siteName, sessionId }: Options) {
+  const resourceAttributes: { [key: string]: any } = {
     "user.session_id": sessionId,
-    "user.public_key": publicKey,
 
-    [ATTR_SERVICE_NAME]: serviceName,
+    [ATTR_SERVICE_NAME]: siteName,
     [ATTR_SERVICE_VERSION]: "0.0.1",
 
     "browser.user_agent": typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
