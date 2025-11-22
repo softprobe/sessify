@@ -10,6 +10,5 @@ function initSessify(config: SessifyConfig): void {
     console.error("❌ A critical error occurred in the sessify entry point:", error);
   }
 }
-
 // Then export all functionality
 export { initSessify, getSessionId, startSession, endSession, isSessionActive };
