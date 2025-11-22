@@ -16,7 +16,7 @@
 
 **A lightweight, zero-dependency library for robust session lifecycle management and W3C-compliant distributed tracing.**
 
-`@softprobe/sessify` simplifies session handling in web applications by automatically managing creation, expiration, and validation. It seamlessly integrates with your network requests by injecting `tracestate` headers, bridging the gap between frontend sessions and backend observability.
+`@softprobe/sessify` simplifies session handling in web applications by automatically managing creation and validation. It seamlessly integrates with your network requests by injecting `tracestate` headers, bridging the gap between frontend sessions and backend observability.
 
 ## ✨ Key Features
 
