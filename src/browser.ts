@@ -1,39 +1,14 @@
-import { ZoneContextManager } from "@opentelemetry/context-zone";
-import {
-  CompositePropagator,
-  W3CBaggagePropagator,
-  W3CTraceContextPropagator,
-} from "@opentelemetry/core";
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { SessifyConfig } from "./config";
-import { createUserResource } from "./createUserResource";
-import { getSessionId, initSessionManager } from "./SessionManager";
-import { CustomTraceStateAppender } from "./CustomTraceStateAppender";
+import { initSessionManager } from "./SessionManager";
+import { SimpleHttpInterceptor } from "./SimpleHttpInterceptor";
 
 export function initBrowserSessify(config: SessifyConfig): void {
   console.log("🚀 Initializing sessify...");
 
   initSessionManager(config.sessionStorageType);
 
-  const resource = createUserResource({
-    siteName: config.siteName || 'default-site',
-    sessionId: getSessionId(), // Initial session ID for resource
-  });
+  // 创建简单的HTTP拦截器来注入tracestate头
+  new SimpleHttpInterceptor(config.siteName || 'default-site');
 
-  const provider = new WebTracerProvider({
-    resource,
-  });
-
-  provider.register({
-    contextManager: new ZoneContextManager(),
-    propagator: new CompositePropagator({
-      propagators: [
-        new W3CBaggagePropagator(),
-        new W3CTraceContextPropagator(),
-        new CustomTraceStateAppender(config.siteName || 'default-site'),
-      ],
-    }),
-  });
-
-  console.log("🎯 Sessify initialized successfully");
+  console.log("🎯 Sessify initialized successfully with SimpleHttpInterceptor");
 }
