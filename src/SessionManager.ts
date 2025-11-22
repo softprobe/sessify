@@ -73,3 +73,13 @@ export function endSession(): void {
   storage.removeItem(SESSION_ID_KEY);
   storage.removeItem(SESSION_LAST_ACTIVITY_KEY);
 }
+
+/**
+ * Checks if there is an active session.
+ * @returns True if there is an active session, false otherwise.
+ */
+export function isSessionActive(): boolean {
+  if (typeof window === "undefined") return false;
+  const sessionId = storage.getItem(SESSION_ID_KEY);
+  return !!sessionId && !isSessionExpired();
+}
