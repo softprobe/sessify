@@ -11,11 +11,11 @@ function App() {
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
   const [storageType, setStorageType] = useState<StorageType>('session');
 
-  // 初始化sessify库
+  // Initialize sessify library
   useEffect(() => {
     console.log('App component mounted');
     
-    // 初始化sessify库
+    // Initialize sessify library
     console.log('Initializing sessify library...');
     initSessify({
       siteName: 'tracestate-test-app',
@@ -24,7 +24,7 @@ function App() {
     
     console.log('Sessify library initialization completed');
     
-    // 检查当前session状态
+    // Check current session status
     const active = isSessionActive();
     setSessionActive(active);
     
@@ -40,7 +40,7 @@ function App() {
   const handleTestApiCall = async () => {
     setLoading(true);
     try {
-      // sessify库应该通过SimpleHttpInterceptor自动注入tracestate头
+      // sessify library should automatically inject tracestate headers via SimpleHttpInterceptor
       console.log('Making API call - SimpleHttpInterceptor should automatically inject tracestate header');
       
       const res = await fetch('http://localhost:3003/api/test');
@@ -76,7 +76,7 @@ function App() {
     console.log('Changing storage type to:', type);
     setStorageType(type);
     
-    // 如果当前有活跃session，需要重新初始化
+    // If there is an active session, need to reinitialize
     if (sessionActive) {
       console.log('Active session detected, ending current session before switching storage type');
       endSession();
@@ -100,13 +100,13 @@ function App() {
                 fontWeight: 'bold',
                 marginLeft: '10px'
               }}>
-                {storageType === 'session' ? 'Session Storage (浏览器标签页级别)' : 'Local Storage (全局级别)'}
+                {storageType === 'session' ? 'Session Storage (Browser Tab Level)' : 'Local Storage (Global Level)'}
               </span>
             </p>
             <p style={{ fontSize: '14px', color: '#ccc', marginTop: '10px' }}>
               {storageType === 'session' 
-                ? 'Session Storage: 数据在当前浏览器标签页有效，关闭标签页后数据丢失' 
-                : 'Local Storage: 数据在浏览器全局有效，关闭浏览器后数据仍然保留'
+                ? 'Session Storage: Data is valid in the current browser tab, data is lost when the tab is closed' 
+                : 'Local Storage: Data is valid globally in the browser, data is retained after browser is closed'
               }
             </p>
           </div>

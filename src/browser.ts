@@ -7,7 +7,7 @@ export function initBrowserSessify(config: SessifyConfig): void {
 
   initSessionManager(config.sessionStorageType);
 
-  // 创建简单的HTTP拦截器来注入tracestate头
+  // Create a simple HTTP interceptor to inject tracestate headers
   new SimpleHttpInterceptor(config.siteName || 'default-site');
 
   console.log("🎯 Sessify initialized successfully with SimpleHttpInterceptor");

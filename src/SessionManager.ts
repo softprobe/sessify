@@ -28,11 +28,11 @@ function isSessionExpired(): boolean {
 }
 
 function generateNewSessionId(): string {
-  // 生成更短的唯一ID，使用时间戳+随机数组合
-  const timestamp = Date.now().toString(36); // 时间戳的36进制
-  const randomPart = Math.random().toString(36).substring(2, 10); // 8位随机字符
+  // Generate shorter unique ID using timestamp + random combination
+  const timestamp = Date.now().toString(36); // Timestamp in base36
+  const randomPart = Math.random().toString(36).substring(2, 10); // 8 random characters
   
-  // 组合成16字符的唯一ID
+  // Combine into 16-character unique ID
   return timestamp + randomPart;
 }
 

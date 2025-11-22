@@ -2,7 +2,7 @@ import { initBrowserSessify } from "./browser";
 import { SessifyConfig } from "./config";
 import { getSessionId, startSession, endSession, isSessionActive } from "./SessionManager";
 
-// 先定义函数
+// First define functions
 function initSessify(config: SessifyConfig): void {
   try {
     initBrowserSessify(config);
@@ -11,5 +11,5 @@ function initSessify(config: SessifyConfig): void {
   }
 }
 
-// 然后导出所有功能
+// Then export all functionality
 export { initSessify, getSessionId, startSession, endSession, isSessionActive };

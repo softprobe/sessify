@@ -2,36 +2,36 @@ import express from 'express';
 import cors from 'cors';
 const app = express();
 
-// 使用CORS中间件允许跨域请求
+// Use CORS middleware to allow cross-origin requests
 app.use(cors());
 
-// 解析JSON请求体
+// Parse JSON request body
 app.use(express.json());
 
-// 测试API端点，用于检查tracestate头
+// Test API endpoint for checking tracestate headers
 app.get('/api/test', (req, res) => {
-  // 获取请求头信息
+  // Get request header information
   const headers = req.headers;
   
-  // 特别关注tracestate头
+  // Pay special attention to tracestate header
   const tracestate = headers['tracestate'] || headers['traceState'] || 'Not found';
   
-  // 也获取traceparent头作为参考
+  // Also get traceparent header for reference
   const traceparent = headers['traceparent'] || 'Not found';
   
-  // 记录所有请求头到控制台
+  // Log all request headers to console
   console.log('Received request headers:');
   console.log('tracestate:', tracestate);
   console.log('traceparent:', traceparent);
   console.log('All headers:', headers);
   
-  // 返回头信息给前端
+  // Return header information to frontend
   res.json({
     message: 'TraceState Test API Response',
     headers: {
       tracestate,
       traceparent,
-      // 也返回部分其他重要头信息
+      // Also return some other important headers
       host: headers['host'],
       accept: headers['accept'],
       'user-agent': headers['user-agent']
@@ -40,12 +40,12 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// 健康检查端点
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 启动服务器
+// Start the server
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
   console.log(`Backend server is running on port ${PORT}`);
